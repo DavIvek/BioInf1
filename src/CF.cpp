@@ -1,3 +1,6 @@
+#include <functional>
+#include <string>
+
 #include  "CF.hpp"
 
 // Constructor
@@ -15,3 +18,51 @@ CuckooFilter::~CuckooFilter() {
 }
 
 // Insert an item into the filter
+bool CuckooFilter::insert(const std::string& item) {
+    if (current_size >= capacity()) {
+        return false;
+    }
+
+    std::size_t index = hash(item) % number_of_buckets;
+    std::size_t fingerprint = hash(item) % (1 << fingerprint_size);
+
+    // now we take f - current_level bits from the fingerprint
+    fingerprint >>= current_level;
+
+    for (std::size_t i = 0; i < bucket_size; i++) {
+        if (buckets[index][i].insert(fingerprint)) {
+            current_size++;
+            return true;
+        }
+    }
+
+    std::size_t i = 0;
+    while (i < max_kicks) {
+        std::size_t random_bucket = rand() % bucket_size;
+        std::size_t temp_fingerprint = buckets[index][random_bucket].fingerprint;
+        buckets[index][random_bucket].fingerprint = fingerprint;
+        fingerprint = temp_fingerprint;
+        index = (index ^ hash(std::to_string(fingerprint))) % number_of_buckets;
+
+        for (std::size_t j = 0; j < bucket_size; j++) {
+            if (buckets[index][j].insert(fingerprint)) {
+                current_size++;
+                return true;
+            }
+        }
+
+        i++;
+    }
+    
+    return false;
+}
+
+// Capacity of the filter
+std::size_t CuckooFilter::capacity() const {
+    return number_of_buckets * bucket_size * 0.9375;
+}
+
+std::size_t CuckooFilter::hash(const std::string& item) const {
+    std::hash<std::string> hash_fn;
+    return hash_fn(item);
+}

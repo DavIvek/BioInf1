@@ -4,6 +4,23 @@
 #include <cstdint>
 #include <vector>
 
+struct Bucket {
+    std::size_t fingerprint;
+    bool occupied;
+
+    Bucket(): fingerprint(0), occupied(false) {}
+
+    bool insert(const std::size_t fingerprint) {
+        if (occupied) {
+            return false;
+        }
+
+        this->fingerprint = fingerprint;
+        occupied = true;
+        return true;
+    }
+};
+
 class CuckooFilter {
 public:
     // Constructor
@@ -42,6 +59,7 @@ private:
     CuckooFilter* child0;
     CuckooFilter* child1;
     CuckooFilter* parent;
+    std::vector<std::vector<Bucket> > buckets;
 
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
