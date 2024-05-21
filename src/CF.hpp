@@ -7,7 +7,7 @@
 class CuckooFilter {
 public:
     // Constructor
-    CuckooFilter(const std::size_t table_size, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level);
+    CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level);
 
     // Destructor
     ~CuckooFilter();
@@ -32,11 +32,12 @@ public:
 
 private:
     bool is_full;
-    std::size_t table_size;
+    std::size_t number_of_buckets;
     std::size_t fingerprint_size;
     std::size_t bucket_size;
     std::size_t max_kicks;
     std::size_t current_size;
+    int current_level;
 
     CuckooFilter* child0;
     CuckooFilter* child1;
