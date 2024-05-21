@@ -16,7 +16,7 @@ public:
     ~LogarithmicDynamicCuckooFilter();
 
     // Insert an item into the filter
-    bool insert(const std::string& item);
+    void insert(const std::string& item);
 
     // Check if an item is in the filter
     bool contains(const std::string& item) const;
@@ -30,9 +30,6 @@ public:
     // Get the filter's capacity
     std::size_t capacity() const;
 
-    // Get the fingerprint size
-    std::size_t fingerprintSize() const;
-
 private:
     int false_positive_rate;
     std::size_t set_size;
@@ -41,6 +38,9 @@ private:
 
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
+
+    // Get prefix of fingerprint
+    bool getPrefix(const std::size_t fingerprint, const int current_level, const std::size_t fingerprintSize) const;
 };
 
 #endif // LOG_DCF_HPP

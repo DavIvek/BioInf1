@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <functional>
 #include <string>
 
@@ -5,7 +6,9 @@
 
 // Constructor
 CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level):
-    number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), is_full(false), max_kicks(500), current_level(current_level) {}
+    number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), max_kicks(500), current_level(current_level) {
+        accept_values = true;
+    }
 
 // Destructor
 CuckooFilter::~CuckooFilter() {
@@ -18,43 +21,61 @@ CuckooFilter::~CuckooFilter() {
 }
 
 // Insert an item into the filter
-bool CuckooFilter::insert(const std::string& item) {
+std::optional<std::size_t> CuckooFilter::insert(const std::string& item) {
+    
     if (current_size >= capacity()) {
-        return false;
+        return std::nullopt;
     }
 
-    std::size_t index = hash(item) % number_of_buckets;
+    buckets_new[5].bit_array[5] = 'a';
+
+    std::size_t index1 = hash(item) % number_of_buckets;
     std::size_t fingerprint = hash(item) % (1 << fingerprint_size);
+
+    std::size_t index2 = index1 ^ hash(fingerprint);
+
+    // save f - current_level bits from the fingerprint
+    auto saved_bits = fingerprint & ((1 << current_level) - 1);
 
     // now we take f - current_level bits from the fingerprint
     fingerprint >>= current_level;
 
+    std::size_t index_to_use = (rand() % 2) ? index1 : index2;
+
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets[index][i].insert(fingerprint)) {
+        if (buckets[index_to_use][i].insert(fingerprint)) {
             current_size++;
-            return true;
+            return std::nullopt;
         }
     }
 
-    std::size_t i = 0;
-    while (i < max_kicks) {
-        std::size_t random_bucket = rand() % bucket_size;
-        std::size_t temp_fingerprint = buckets[index][random_bucket].fingerprint;
-        buckets[index][random_bucket].fingerprint = fingerprint;
+    for (std::size_t i = 0; i < max_kicks; i++) {
+        std::size_t bucket_index = rand() % bucket_size;
+        std::size_t temp_fingerprint = buckets[index_to_use][bucket_index].fingerprint;
+        buckets[index_to_use][bucket_index].fingerprint = fingerprint;
         fingerprint = temp_fingerprint;
-        index = (index ^ hash(std::to_string(fingerprint))) % number_of_buckets;
+
+        index_to_use = index_to_use ^ hash(fingerprint);
 
         for (std::size_t j = 0; j < bucket_size; j++) {
-            if (buckets[index][j].insert(fingerprint)) {
+            if (buckets[index_to_use][j].insert(fingerprint)) {
                 current_size++;
-                return true;
+                return std::nullopt;
             }
         }
-
-        i++;
     }
-    
-    return false;
+
+    // now if we are here we have to restore the fingerprint
+    fingerprint <<= current_level;
+    fingerprint |= saved_bits;
+
+    accept_values = false;
+
+    return fingerprint;  
+}
+
+bool CuckooFilter::isFull() const {
+    return current_size >= capacity();
 }
 
 // Capacity of the filter
@@ -64,5 +85,10 @@ std::size_t CuckooFilter::capacity() const {
 
 std::size_t CuckooFilter::hash(const std::string& item) const {
     std::hash<std::string> hash_fn;
+    return hash_fn(item);
+}
+
+std::size_t CuckooFilter::hash(const std::size_t item) const {
+    std::hash<std::size_t> hash_fn;
     return hash_fn(item);
 }
