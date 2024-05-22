@@ -27,6 +27,7 @@ CuckooFilter::~CuckooFilter() {
     if (child1 != nullptr) {
         delete child1;
     }
+    delete[] buckets;
 }
 
 // Insert an item into the filter
@@ -39,7 +40,7 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
 
-    std::size_t index2 = index1 ^ hash(fingerprint);
+    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
 
     // save f - current_level bits from the fingerprint
     uint32_t saved_bits = fingerprint & ((1 << current_level) - 1);
@@ -63,7 +64,7 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
         buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size);
         fingerprint = temp_fingerprint;
 
-        index_to_use = index_to_use ^ hash(fingerprint);
+        index_to_use = index_to_use ^ hash(fingerprint) % number_of_buckets;
 
         for (std::size_t j = 0; j < bucket_size; j++) {
             if (buckets[index_to_use].read(j, fingerprint_size) == 0) {
@@ -85,9 +86,9 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
 
 bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index1 = hash(item) % number_of_buckets;
-    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+    uint32_t fingerprint = hash(item) % (1 << fingerprint_size); // check if this is correct
 
-    std::size_t index2 = index1 ^ hash(fingerprint);
+    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (buckets[index1].read(i, fingerprint_size) == fingerprint || buckets[index2].read(i, fingerprint_size) == fingerprint) {
@@ -103,7 +104,7 @@ bool CuckooFilter::remove(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
 
-    std::size_t index2 = index1 ^ hash(fingerprint);
+    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (buckets[index1].read(i, fingerprint_size) == fingerprint) {
