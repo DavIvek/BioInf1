@@ -8,6 +8,15 @@
 CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level):
     number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), max_kicks(500), current_level(current_level) {
         accept_values = true;
+        child0 = nullptr;
+        child1 = nullptr;
+
+        buckets = new Bucket[number_of_buckets];
+        for (std::size_t i = 0; i < number_of_buckets; i++) {
+            buckets[i].bit_array = new char[bucket_size];
+            // 0 out the bucket
+            memset(buckets[i].bit_array, 0, bucket_size);
+        }
     }
 
 // Destructor
@@ -119,6 +128,11 @@ bool CuckooFilter::isFull() const {
 // Capacity of the filter
 std::size_t CuckooFilter::capacity() const {
     return number_of_buckets * bucket_size * 0.9375;
+}
+
+// Size of the filter
+std::size_t CuckooFilter::size() const {
+    return current_size;
 }
 
 std::size_t CuckooFilter::hash(const std::string& item) const {

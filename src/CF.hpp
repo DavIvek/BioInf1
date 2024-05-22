@@ -103,7 +103,6 @@ public:
 
     CuckooFilter* child0;
     CuckooFilter* child1;
-    CuckooFilter* parent;
 
     // Constructor
     CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level);
@@ -132,8 +131,6 @@ public:
     std::size_t getFingerprintSize() const { return fingerprint_size; }
 
     bool isFull() const;
-
-    bool acceptValues() const { return accept_values; }
 
 private:
     std::size_t number_of_buckets;
