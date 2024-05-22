@@ -8,7 +8,7 @@
 struct Bucket {
     char *bit_array;
 
-    void insert(std::size_t index, std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {        
+    void write(std::size_t index, std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {        
         if (fingerprint_size <= 4) {
             // even or odd position
             bit_array += (position >> 1);
@@ -111,7 +111,7 @@ public:
     ~CuckooFilter();
 
     // Insert an item into the filter
-    std::optional<std::size_t> insert(const std::string& item);
+    std::optional<u_int32_t> insert(const std::string& item);
 
     void insert(const std::size_t victim);
 
