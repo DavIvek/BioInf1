@@ -50,8 +50,8 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     std::size_t index_to_use = (rand() % 2) ? index1 : index2;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets->read(index_to_use, i, fingerprint_size) == 0) {
-            buckets->write(index_to_use, i, fingerprint, fingerprint_size);
+        if (buckets[index_to_use].read(i, fingerprint_size) == 0) {
+            buckets[index_to_use].write(i, fingerprint, fingerprint_size);
             current_size++;
             return std::nullopt;
         }
@@ -59,15 +59,15 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
 
     for (std::size_t i = 0; i < max_kicks; i++) {
         std::size_t bucket_index = rand() % bucket_size;
-        std::size_t temp_fingerprint = buckets->read(index_to_use, bucket_index, fingerprint_size);
-        buckets->write(index_to_use, bucket_index, fingerprint, fingerprint_size);
+        std::size_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size);
+        buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size);
         fingerprint = temp_fingerprint;
 
         index_to_use = index_to_use ^ hash(fingerprint);
 
         for (std::size_t j = 0; j < bucket_size; j++) {
-            if (buckets->read(index_to_use, j, fingerprint_size) == 0) {
-                buckets->write(index_to_use, j, fingerprint, fingerprint_size);
+            if (buckets[index_to_use].read(j, fingerprint_size) == 0) {
+                buckets[index_to_use].write(j, fingerprint, fingerprint_size);
                 current_size++;
                 return std::nullopt;
             }
@@ -90,7 +90,7 @@ bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index2 = index1 ^ hash(fingerprint);
 
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets->read(index1, i, fingerprint_size) == fingerprint || buckets->read(index2, i, fingerprint_size) == fingerprint) {
+        if (buckets[index1].read(i, fingerprint_size) == fingerprint || buckets[index2].read(i, fingerprint_size) == fingerprint) {
             return true;
         }
     }
@@ -106,13 +106,13 @@ bool CuckooFilter::remove(const std::string& item) {
     std::size_t index2 = index1 ^ hash(fingerprint);
 
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets->read(index1, i, fingerprint_size) == fingerprint) {
-            buckets->write(index1, i, 0, fingerprint_size);
+        if (buckets[index1].read(i, fingerprint_size) == fingerprint) {
+            buckets[index1].write(i, 0, fingerprint_size);
             current_size--;
             return true;
         }
-        if (buckets->read(index2, i, fingerprint_size) == fingerprint) {
-            buckets->write(index2, i, 0, fingerprint_size);
+        if (buckets[index2].read(i, fingerprint_size) == fingerprint) {
+            buckets[index2].write(i, 0, fingerprint_size);
             current_size--;
             return true;
         }

@@ -9,7 +9,7 @@
 struct Bucket {
     char *bit_array;
 
-    void write(std::size_t index, std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {        
+    void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {        
         if (fingerprint_size <= 4) {
             // even or odd position
             bit_array += (position >> 1);
@@ -54,18 +54,18 @@ struct Bucket {
         }
     }
 
-    uint32_t read(std::size_t index, std::size_t position, std::size_t fingerprint_size) {
+    uint32_t read(std::size_t position, std::size_t fingerprint_size) {
         uint32_t fingerprint = 0;
 
         if (fingerprint_size <= 4) {
             bit_array += (position >> 1);
             if (position & 1) {
                 // odd position -> read from the left
-                fingerprint = (*(uint8_t*)(bit_array) & 0xF0);
+                fingerprint = (*(uint8_t*)(bit_array) & 0xF);
             }
             else {
                 // even position -> read from the right
-                fingerprint = (*(uint8_t*)(bit_array) >> 4 & 0x0F);
+                fingerprint = (*(uint8_t*)(bit_array) >> 4 & 0xF);
             }
         }
         else if (fingerprint_size <= 8) {
