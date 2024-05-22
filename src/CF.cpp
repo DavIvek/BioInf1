@@ -74,6 +74,44 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     return fingerprint;  
 }
 
+bool CuckooFilter::contains(const std::string& item) const {
+    std::size_t index1 = hash(item) % number_of_buckets;
+    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+
+    std::size_t index2 = index1 ^ hash(fingerprint);
+
+    for (std::size_t i = 0; i < bucket_size; i++) {
+        if (buckets->read(index1, i, fingerprint_size) == fingerprint || buckets->read(index2, i, fingerprint_size) == fingerprint) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool CuckooFilter::remove(const std::string& item) {
+    std::size_t index1 = hash(item) % number_of_buckets;
+    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+
+    std::size_t index2 = index1 ^ hash(fingerprint);
+
+    for (std::size_t i = 0; i < bucket_size; i++) {
+        if (buckets->read(index1, i, fingerprint_size) == fingerprint) {
+            buckets->write(index1, i, 0, fingerprint_size);
+            current_size--;
+            return true;
+        }
+        if (buckets->read(index2, i, fingerprint_size) == fingerprint) {
+            buckets->write(index2, i, 0, fingerprint_size);
+            current_size--;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool CuckooFilter::isFull() const {
     return current_size >= capacity();
 }
