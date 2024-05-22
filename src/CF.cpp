@@ -12,10 +12,13 @@ CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_
         child1 = nullptr;
 
         buckets = new Bucket[number_of_buckets];
+
+        auto bits_per_bucket = bucket_size * fingerprint_size;
+        auto bytes_per_bucket = (bits_per_bucket + 7) >> 3;
         for (std::size_t i = 0; i < number_of_buckets; i++) {
-            buckets[i].bit_array = new char[bucket_size];
+            buckets[i].bit_array = new char[bytes_per_bucket];
             // 0 out the bucket
-            memset(buckets[i].bit_array, 0, bucket_size);
+            memset(buckets[i].bit_array, 0, bytes_per_bucket);
         }
     }
 
