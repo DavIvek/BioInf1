@@ -94,7 +94,9 @@ bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets[index1].read(i, fingerprint_size) == fingerprint || buckets[index2].read(i, fingerprint_size) == fingerprint) {
+        auto result1 = buckets[index1].read(i, fingerprint_size);
+        auto result2 = buckets[index2].read(i, fingerprint_size);
+        if (result1 == fingerprint || result2 == fingerprint) {
             return true;
         }
     }

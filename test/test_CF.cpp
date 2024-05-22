@@ -62,18 +62,22 @@ TEST_F(CuckooFilterTest, SmallerFilterTest) {
     // Insert 4 items
     EXPECT_EQ(cf.insert("test1"), std::nullopt);
     EXPECT_EQ(cf.size(), 1);
+    EXPECT_EQ(cf.contains("test1"), true);
 
     EXPECT_EQ(cf.insert("test2"), std::nullopt);
     EXPECT_EQ(cf.size(), 2);
+    EXPECT_EQ(cf.contains("test2"), true);
 
     EXPECT_EQ(cf.insert("test3"), std::nullopt);
     EXPECT_EQ(cf.size(), 3);
+    EXPECT_EQ(cf.contains("test3"), true);
 
     EXPECT_EQ(cf.insert("test4"), std::nullopt);
     EXPECT_EQ(cf.size(), 4);
+    EXPECT_EQ(cf.contains("test4"), true);
 
     // Check if the items are in the filter
-    EXPECT_EQ(cf.contains("test1"), true);
+    EXPECT_EQ(cf.contains("test1"), true); // This should be true but test3 or test4 might have replaced it
     EXPECT_EQ(cf.contains("test2"), true);
     EXPECT_EQ(cf.contains("test3"), true);
     EXPECT_EQ(cf.contains("test4"), true);
