@@ -6,7 +6,6 @@
 #include <optional>
 #include <string>
 
-
 struct Bucket {
     char *bit_array;
 
