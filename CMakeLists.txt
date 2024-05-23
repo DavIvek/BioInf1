@@ -22,12 +22,8 @@ add_library(your_library
 target_include_directories(your_library PUBLIC src)
 
 # Add test executable
-add_executable(your_tests test/dummy_test.cpp)
-target_link_libraries(your_tests gtest gtest_main your_library)
-
 add_executable(test_CF test/test_CF.cpp)
 target_link_libraries(test_CF gtest gtest_main your_library)
 
 # Add tests to CTest
-add_test(NAME YourTestName COMMAND your_tests)
 add_test(NAME TestCF COMMAND test_CF)

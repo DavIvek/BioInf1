@@ -132,6 +132,8 @@ public:
 
     bool isFull() const;
 
+    bool bucketIsZero() const;
+
 private:
     std::size_t number_of_buckets;
     std::size_t fingerprint_size;
@@ -143,10 +145,15 @@ private:
 
     Bucket *buckets;
 
+    int counter [4] = {0, 0, 0, 0};
+    int counter2 [4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
 
     std::size_t hash(const std::size_t item) const;
+
+    uint32_t createFingerprint(const std::string& item) const;
 };
 
 #endif // CUCKOO_FILTER_HPP
