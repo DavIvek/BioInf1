@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include <string>
 
 
 struct Bucket {
@@ -111,7 +112,7 @@ public:
     ~CuckooFilter();
 
     // Insert an item into the filter
-    std::optional<u_int32_t> insert(const std::string& item);
+    std::optional<uint32_t> insert(const std::string& item);
 
     void insert(const std::size_t victim);
 

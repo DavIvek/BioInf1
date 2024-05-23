@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <functional>
 #include <string>
+#include <cstring>
 
 #include  "CF.hpp"
 
