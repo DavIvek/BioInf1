@@ -77,7 +77,7 @@ TEST_F(CuckooFilterTest, SmallerFilterTest) {
     EXPECT_EQ(cf.contains("test4"), true);
 
     // Check if the items are in the filter
-    EXPECT_EQ(cf.contains("test1"), true); // This should be true but test3 or test4 might have replaced it
+    EXPECT_EQ(cf.contains("test1"), true);
     EXPECT_EQ(cf.contains("test2"), true);
     EXPECT_EQ(cf.contains("test3"), true);
     EXPECT_EQ(cf.contains("test4"), true);
