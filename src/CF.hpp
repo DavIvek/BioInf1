@@ -150,9 +150,6 @@ private:
 
     std::vector<Bucket> buckets;
 
-    int counter [4] = {0, 0, 0, 0};
-    int counter2 [4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
-
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
 

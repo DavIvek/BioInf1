@@ -14,21 +14,21 @@ protected:
     }
 };
 
-// TEST_F(CuckooFilterTest, BasicFunctionalityTest) {
-//     CuckooFilter cf(100, 4, 4, 0);
-//     EXPECT_EQ(cf.size(), 0);
+TEST_F(CuckooFilterTest, BasicFunctionalityTest) {
+    CuckooFilter cf(100, 4, 4, 0);
+    EXPECT_EQ(cf.size(), 0);
 
-//     EXPECT_EQ(cf.insert("test"), std::nullopt);
-//     EXPECT_EQ(cf.size(), 1);
+    EXPECT_EQ(cf.insert("test"), std::nullopt);
+    EXPECT_EQ(cf.size(), 1);
 
-//     EXPECT_EQ(cf.contains("test"), true);
-//     EXPECT_EQ(cf.remove("test"), true);
+    EXPECT_EQ(cf.contains("test"), true);
+    EXPECT_EQ(cf.remove("test"), true);
     
-//     EXPECT_EQ(cf.size(), 0);
-//     EXPECT_EQ(cf.contains("test"), false);
+    EXPECT_EQ(cf.size(), 0);
+    EXPECT_EQ(cf.contains("test"), false);
 
-//     EXPECT_EQ(cf.isFull(), false);
-// }
+    EXPECT_EQ(cf.isFull(), false);
+}
 
 TEST_F(CuckooFilterTest, MultipleInsertsTest) {
     // Create small cuckoo filter

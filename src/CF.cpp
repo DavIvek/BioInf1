@@ -64,8 +64,6 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
                 throw std::runtime_error("Error inserting fingerprint"); // remove later -> just for debugging
             }
             current_size++;
-            counter[index_to_use]++;
-            counter2[index_to_use][i]++;
             return std::nullopt;
         }
     }
