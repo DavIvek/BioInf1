@@ -1,5 +1,9 @@
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
+#include <string>
+#include <sys/types.h>
 #include "CF.hpp"
 
 class CuckooFilterTest : public ::testing::Test {
@@ -11,6 +15,17 @@ protected:
 
     void TearDown() override {
         // teardown code
+    }
+
+    // Helper function to generate a fingerprint of a given string 
+    uint32_t generateFingerprint(const std::string& item, std::size_t fingerprint_size) {
+        std::hash<std::string> hash_fn;
+        std::size_t hash_value = hash_fn(item);
+        uint32_t fingerprint = hash_value & ((1 << fingerprint_size) - 1);
+        if (fingerprint == 0) {
+            fingerprint = 1;
+        }
+        return fingerprint;
     }
 };
 
@@ -96,6 +111,37 @@ TEST_F(CuckooFilterTest, LargeFilterTest) {
         std::string item = "test" + std::to_string(j);
         if (cf.contains(item) == false) {
             EXPECT_EQ(cf.contains(item), true);
+        }
+    }
+}
+
+TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
+    // insert with more values of fingerprint size
+    for (std::size_t i = 2; i < 33; i++) {
+        // save the victims
+        std::set<uint32_t> victims;
+        CuckooFilter cf(4, i, 4, 0);
+        EXPECT_EQ(cf.size(), 0);
+
+        int j = 0;
+        while (!cf.isFull()) {
+            std::string item = "test" + std::to_string(j);
+            auto result = cf.insert(item);
+            if (result != std::nullopt) {
+                victims.insert(result.value());
+                j--;
+                break;
+            }
+            j++;
+        }
+
+        for (int k = 0; k < j; k++) {
+            std::string item = "test" + std::to_string(k);
+            uint32_t fingerprint = generateFingerprint(item, i);
+            // Check if the item is in the filter but not in the victims
+            if (victims.find(fingerprint) == victims.end()) {
+                EXPECT_EQ(cf.contains(item), true);
+            }
         }
     }
 }

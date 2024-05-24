@@ -20,13 +20,11 @@ struct Bucket {
                 // odd position -> write to the left
                 *((uint8_t*)(bit_array_copy)) &= 0xF0;
                 *((uint8_t*)(bit_array_copy)) |= (fingerprint);
-                std::cout << "new byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << "\n";
             }
             else {
                 // even position -> write to the right
                 *((uint8_t*)(bit_array_copy)) &= 0x0F;
                 *((uint8_t*)(bit_array_copy)) |= (fingerprint << 4);
-                std::cout << "new byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << "\n";
             }
         }
         else if (fingerprint_size <= 8) {
@@ -55,6 +53,7 @@ struct Bucket {
         }
         else {
             // four bytes -> write to whole bytes
+            bit_array_copy += (position << 2);
             *(uint32_t*)(bit_array_copy) = fingerprint;
         }
     }
@@ -91,12 +90,16 @@ struct Bucket {
         }
         else if (fingerprint_size <= 24) {
             bit_array_copy += (position + (position << 1));
-            fingerprint = (*(uint32_t*)(bit_array_copy) >> 4); // Read the upper 24 bits
+            uint32_t bits_32 = *(uint32_t*)(bit_array_copy);
+            fingerprint = bits_32 & 0xFFFFFF; 
         }
         else {
+            bit_array_copy += (position << 2);
             fingerprint = *(uint32_t*)(bit_array_copy) & 0xFFFFFFFF;
+            return fingerprint;
         }
-        return fingerprint & ((1 << fingerprint_size) - 1); // right part of the bit expression is to clear the upper bits 
+        uint32_t mask = (1 << fingerprint_size) - 1;
+        return fingerprint & mask;                          // right part of the bit expression is to clear the upper bits 
                                                             // if the left shift operation resulted in 00010000, subtracting 1 gives 00001111
     }
 };
