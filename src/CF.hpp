@@ -17,18 +17,17 @@ struct Bucket {
             // even or odd position
             bit_array_copy += (position >> 1);
             if (position & 1) {
-                // odd position -> write to the left
                 *((uint8_t*)(bit_array_copy)) &= 0xF0;
                 *((uint8_t*)(bit_array_copy)) |= (fingerprint);
             }
             else {
-                // even position -> write to the right
                 *((uint8_t*)(bit_array_copy)) &= 0x0F;
                 *((uint8_t*)(bit_array_copy)) |= (fingerprint << 4);
             }
         }
         else if (fingerprint_size <= 8) {
             // one byte -> write to whole byte
+            bit_array_copy += position;
             *(uint8_t*)(bit_array_copy) = fingerprint;
         }
         else if (fingerprint_size <= 12) {
@@ -74,6 +73,7 @@ struct Bucket {
             }
         }
         else if (fingerprint_size <= 8) {
+            bit_array_copy += position;
             fingerprint = *(uint8_t*)(bit_array_copy) & 0xFF;
         }
         else if (fingerprint_size <= 12) {

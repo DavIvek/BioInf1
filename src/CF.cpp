@@ -45,13 +45,14 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
         return std::nullopt;
     }
 
-    std::size_t index1 = hash(item) % number_of_buckets;
-    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+    uint32_t index1 = hash(item) % number_of_buckets;
+    uint32_t fingerprint = hash(item);
+    fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
     if (fingerprint == 0) {
         fingerprint = 1;
     }
 
-    std::size_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
+    uint32_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
 
     // save f - current_level bits from the fingerprint
     uint32_t saved_bits = fingerprint & ((1 << current_level) - 1);
@@ -59,7 +60,7 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     // now we take f - current_level bits from the fingerprint
     fingerprint >>= current_level;
 
-    std::size_t index_to_use = (rand() % 2) ? index1 : index2;
+    uint32_t index_to_use = index1; // should be random but cant due to mod
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (buckets[index_to_use].read(i, fingerprint_size) == 0) {
@@ -79,7 +80,7 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
         buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size);
         fingerprint = temp_fingerprint;
 
-        index_to_use = index_to_use ^ hash(fingerprint) % number_of_buckets;
+        index_to_use = (index_to_use ^ hash(fingerprint)) % number_of_buckets;
 
         for (std::size_t j = 0; j < bucket_size; j++) {
             if (buckets[index_to_use].read(j, fingerprint_size) == 0) {
@@ -101,7 +102,8 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
 
 bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index1 = hash(item) % number_of_buckets;
-    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+    uint32_t fingerprint = hash(item);
+    fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
     if (fingerprint == 0) {
         fingerprint = 1;
     }
@@ -122,7 +124,8 @@ bool CuckooFilter::contains(const std::string& item) const {
 
 bool CuckooFilter::remove(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
-    uint32_t fingerprint = hash(item) % (1 << fingerprint_size);
+    uint32_t fingerprint = hash(item);
+    fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
     if (fingerprint == 0) {
         fingerprint = 1;
     }
