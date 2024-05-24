@@ -134,6 +134,10 @@ bool CuckooFilter::remove(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item);
     fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
+
+    // now we take f - current_level bits from the fingerprint
+    fingerprint >>= current_level;
+
     if (fingerprint == 0) {
         fingerprint = 1;
     }
