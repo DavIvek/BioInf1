@@ -109,12 +109,6 @@ bool CuckooFilter::contains(const std::string& item) const {
     }
 
     return false;
-    // for (std::size_t i = 0; i < bucket_size; i++) {
-    //     if (buckets[index1].contains(i, fingerprint, fingerprint_size) || buckets[index2].contains(i, fingerprint, fingerprint_size)) {
-    //         return true;
-    //     }
-    // }
-    // return false;
 }
 
 
@@ -162,15 +156,4 @@ std::size_t CuckooFilter::hash(const std::string& item) const {
 std::size_t CuckooFilter::hash(const std::size_t item) const {
     std::hash<std::size_t> hash_fn;
     return hash_fn(item);
-}
-
-bool CuckooFilter::bucketIsZero() const {
-    for (std::size_t i = 0; i < number_of_buckets; i++) {
-        for (std::size_t j = 0; j < bucket_size; j++) {
-            if (buckets[i].bit_array == 0) {
-                return false;
-            }
-        }
-    }
-    return true;
 }

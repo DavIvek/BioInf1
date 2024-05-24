@@ -137,8 +137,6 @@ public:
 
     bool isFull() const;
 
-    bool bucketIsZero() const;
-
 private:
     std::size_t number_of_buckets;
     std::size_t fingerprint_size;
