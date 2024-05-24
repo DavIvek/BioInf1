@@ -2,6 +2,7 @@
 #define CUCKOO_FILTER_HPP
 
 #include <cstdint>
+#include <unordered_set>
 #include <vector>
 #include <optional>
 #include <string>
@@ -29,6 +30,7 @@ struct Bucket {
             // one byte -> write to whole byte
             bit_array_copy += position;
             *(uint8_t*)(bit_array_copy) = fingerprint;
+            //std::cout << "byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << std::endl;
         }
         else if (fingerprint_size <= 12) {
             bit_array_copy += (position + (position >> 1));
@@ -148,6 +150,8 @@ private:
     std::size_t current_size;
 
     bool accept_values;
+
+    std::unordered_set<uint32_t> kicked_fingerprints;
 
     std::vector<Bucket> buckets;
 

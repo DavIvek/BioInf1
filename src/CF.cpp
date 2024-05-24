@@ -9,7 +9,7 @@
 
 // Constructor
 CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level):
-    number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), max_kicks(500), current_level(current_level) {
+    number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), max_kicks(100), current_level(current_level) {
         accept_values = true;
         child0 = nullptr;
         child1 = nullptr;
@@ -65,18 +65,19 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (buckets[index_to_use].read(i, fingerprint_size) == 0) {
             buckets[index_to_use].write(i, fingerprint, fingerprint_size);
-            uint32_t temp = buckets[index_to_use].read(i, fingerprint_size);
-            if (fingerprint != temp) {
-                throw std::runtime_error("Error inserting fingerprint for fingerprint size: " + std::to_string(fingerprint_size));
-            }
             current_size++;
             return std::nullopt;
         }
     }
-
     for (std::size_t i = 0; i < max_kicks; i++) {
         std::size_t bucket_index = rand() % bucket_size;
-        std::size_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size);
+        std::uint32_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size);
+        if (kicked_fingerprints.find(temp_fingerprint) == kicked_fingerprints.end()) {
+            kicked_fingerprints.insert(temp_fingerprint);
+        }
+        else {
+            continue;
+        }
         buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size);
         fingerprint = temp_fingerprint;
 

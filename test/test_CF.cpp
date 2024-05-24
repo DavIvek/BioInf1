@@ -140,11 +140,7 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
             uint32_t fingerprint = generateFingerprint(item, i);
             // Check if the item is in the filter but not in the victims
             if (victims.find(fingerprint) == victims.end()) {
-                if (cf.contains(item) == false) {
-                    EXPECT_EQ(cf.contains(item), true);
-                    std::cout << "Item " << item << " not found in the filter with fingerprint size: " << i << std::endl; 
-                    // throw std::runtime_error("Item not found in the filter with fingerprint size: " + std::to_string(i));
-                }
+                EXPECT_EQ(cf.contains(item), true);
             }
         }
     }
@@ -152,7 +148,7 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
 
 TEST_F(CuckooFilterTest, BigDurabilityTest) {
     // insert with more values of fingerprint size
-    for (std::size_t i = 6; i < 33; i++) {
+    for (std::size_t i = 2; i < 33; i++) {
         // save the victims
         std::set<uint32_t> victims;
         CuckooFilter cf(10000, i, 4, 0);
@@ -175,10 +171,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
             uint32_t fingerprint = generateFingerprint(item, i);
             // Check if the item is in the filter but not in the victims
             if (victims.find(fingerprint) == victims.end()) {
-                if (cf.contains(item) == false) {
-                    std::cout << "Item " << item << " not found in the filter with fingerprint size: " << i << std::endl; 
-                    // throw std::runtime_error("Item not found in the filter with fingerprint size: " + std::to_string(i));
-                }
+                EXPECT_EQ(cf.contains(item), true);
             }
         }
     }
