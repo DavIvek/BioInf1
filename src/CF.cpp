@@ -13,7 +13,7 @@ CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_
         child0 = nullptr;
         child1 = nullptr;
 
-        buckets = new Bucket[number_of_buckets];
+        buckets.reserve(number_of_buckets);
 
         auto bits_per_bucket = bucket_size * fingerprint_size;
         auto bytes_per_bucket = (bits_per_bucket + 7) >> 3;
@@ -35,7 +35,6 @@ CuckooFilter::~CuckooFilter() {
     for (std::size_t i = 0; i < number_of_buckets; ++i) {
         delete[] buckets[i].bit_array;
     }
-    delete[] buckets;
 }
 
 // Insert an item into the filter
@@ -48,7 +47,7 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item) % (1 << fingerprint_size) + 1;
 
-    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
+    std::size_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
 
     // save f - current_level bits from the fingerprint
     uint32_t saved_bits = fingerprint & ((1 << current_level) - 1);
@@ -101,7 +100,7 @@ bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item) % (1 << fingerprint_size) + 1;
 
-    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
+    std::size_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         auto result1 = buckets[index1].read(i, fingerprint_size);
@@ -125,7 +124,7 @@ bool CuckooFilter::remove(const std::string& item) {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item) % (1 << fingerprint_size) + 1;
 
-    std::size_t index2 = index1 ^ hash(fingerprint) % number_of_buckets;
+    std::size_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (buckets[index1].read(i, fingerprint_size) == fingerprint) {

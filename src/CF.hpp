@@ -5,92 +5,97 @@
 #include <vector>
 #include <optional>
 #include <string>
+#include <iostream>
+#include <bitset>
 
 struct Bucket {
     char *bit_array;
 
-    void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {        
+    void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {   
+        char *bit_array_copy= bit_array;
         if (fingerprint_size <= 4) {
             // even or odd position
-            bit_array += (position >> 1);
+            bit_array_copy += (position >> 1);
             if (position & 1) {
                 // odd position -> write to the left
-                *(uint8_t*)(bit_array) &= 0xF0;
-                *(uint8_t*)(bit_array) |= (fingerprint);
+                *((uint8_t*)(bit_array_copy)) &= 0xF0;
+                *((uint8_t*)(bit_array_copy)) |= (fingerprint);
+                std::cout << "new byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << "\n";
             }
             else {
                 // even position -> write to the right
-                *(uint8_t*)(bit_array) &= 0x0F;
-                *(uint8_t*)(bit_array) |= (fingerprint << 4);
+                *((uint8_t*)(bit_array_copy)) &= 0x0F;
+                *((uint8_t*)(bit_array_copy)) |= (fingerprint << 4);
+                std::cout << "new byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << "\n";
             }
         }
         else if (fingerprint_size <= 8) {
             // one byte -> write to whole byte
-            *(uint8_t*)(bit_array) = fingerprint;
+            *(uint8_t*)(bit_array_copy) = fingerprint;
         }
         else if (fingerprint_size <= 12) {
-            bit_array += (position + (position >> 1));
+            bit_array_copy += (position + (position >> 1));
             if (position & 1) {
-                *(uint16_t*)(bit_array) &= 0x000F; // Clear the upper 12 bits
-                *(uint16_t*)(bit_array) |= (fingerprint << 4); // Set the upper 12 bits
+                *(uint16_t*)(bit_array_copy) &= 0x000F; // Clear the upper 12 bits
+                *(uint16_t*)(bit_array_copy) |= (fingerprint << 4); // Set the upper 12 bits
             }
             else {
-                *(uint16_t*)(bit_array) &= 0xF000; // Clear the lower 12 bits
-                *(uint16_t*)(bit_array) |= (fingerprint); // Set the lower 12 bits
+                *(uint16_t*)(bit_array_copy) &= 0xF000; // Clear the lower 12 bits
+                *(uint16_t*)(bit_array_copy) |= (fingerprint); // Set the lower 12 bits
             }
         }
         else if (fingerprint_size <= 16) {
             // two bytes -> write to whole bytes
-            *(uint16_t*)(bit_array) = fingerprint;
+            *(uint16_t*)(bit_array_copy) = fingerprint;
         }
         else if (fingerprint_size <= 24) {
-            bit_array += (position + (position << 1));
-            *(uint32_t*)(bit_array) &= 0xFF000000; // Clear the upper 24 bits
-            *(uint32_t*)(bit_array) |= fingerprint; // Set the upper 24 bits
+            bit_array_copy += (position + (position << 1));
+            *(uint32_t*)(bit_array_copy) &= 0xFF000000; // Clear the upper 24 bits
+            *(uint32_t*)(bit_array_copy) |= fingerprint; // Set the upper 24 bits
         }
         else {
             // four bytes -> write to whole bytes
-            *(uint32_t*)(bit_array) = fingerprint;
+            *(uint32_t*)(bit_array_copy) = fingerprint;
         }
     }
 
-    uint32_t read(std::size_t position, std::size_t fingerprint_size) {
+    uint32_t read(std::size_t position, std::size_t fingerprint_size) const {
         uint32_t fingerprint = 0;
-
+        const char *bit_array_copy = bit_array;
         if (fingerprint_size <= 4) {
-            bit_array += (position >> 1);
+            bit_array_copy += (position >> 1);
+            uint8_t bits_8 = *(uint8_t*)(bit_array_copy);
             if (position & 1) {
                 // odd position -> read from the left
-                fingerprint = (*(uint8_t*)(bit_array) & 0xF);
+                fingerprint = bits_8 & 0xF;
             }
             else {
                 // even position -> read from the right
-                fingerprint = (*(uint8_t*)(bit_array) >> 4 & 0xF);
+                fingerprint = (bits_8 >> 4) & 0xF;
             }
         }
         else if (fingerprint_size <= 8) {
-            fingerprint = *(uint8_t*)(bit_array) & 0xFF;
+            fingerprint = *(uint8_t*)(bit_array_copy) & 0xFF;
         }
         else if (fingerprint_size <= 12) {
-            bit_array += (position + (position >> 1));
+            bit_array_copy += (position + (position >> 1));
             if (position & 1) {
-                fingerprint = (*(uint16_t*)(bit_array) >> 4 & 0xFFF); // Read the upper 12 bits
+                fingerprint = (*(uint16_t*)(bit_array_copy) >> 4 & 0xFFF); // Read the upper 12 bits
             }
             else {
-                fingerprint = (*(uint16_t*)(bit_array) & 0xFFF); // Read the lower 12 bits
+                fingerprint = (*(uint16_t*)(bit_array_copy) & 0xFFF); // Read the lower 12 bits
             }
         }
         else if (fingerprint_size <= 16) {
-            fingerprint = *(uint16_t*)(bit_array) & 0xFFFF;
+            fingerprint = *(uint16_t*)(bit_array_copy) & 0xFFFF;
         }
         else if (fingerprint_size <= 24) {
-            bit_array += (position + (position << 1));
-            fingerprint = (*(uint32_t*)(bit_array) >> 4); // Read the upper 24 bits
+            bit_array_copy += (position + (position << 1));
+            fingerprint = (*(uint32_t*)(bit_array_copy) >> 4); // Read the upper 24 bits
         }
         else {
-            fingerprint = *(uint32_t*)(bit_array) & 0xFFFFFFFF;
+            fingerprint = *(uint32_t*)(bit_array_copy) & 0xFFFFFFFF;
         }
-
         return fingerprint & ((1 << fingerprint_size) - 1); // right part of the bit expression is to clear the upper bits 
                                                             // if the left shift operation resulted in 00010000, subtracting 1 gives 00001111
     }
@@ -143,7 +148,7 @@ private:
 
     bool accept_values;
 
-    Bucket *buckets;
+    std::vector<Bucket> buckets;
 
     int counter [4] = {0, 0, 0, 0};
     int counter2 [4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
