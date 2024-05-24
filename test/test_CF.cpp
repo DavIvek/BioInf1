@@ -177,6 +177,27 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
     }
 }
 
+TEST_F(CuckooFilterTest, MultipleLevelsTest) {
+    // try with CuckooFilter with other levels than 0
+    CuckooFilter cf(100, 4, 4, 3);
+    EXPECT_EQ(cf.size(), 0);
+
+    // Insert 20 items
+    for (int i = 0; i < 20; i++) {
+        std::string item = "test" + std::to_string(i);
+        EXPECT_EQ(cf.insert(item), std::nullopt);
+    }
+
+    // Check if the items are in the filter
+    for (int i = 0; i < 20; i++) {
+        std::string item = "test" + std::to_string(i);
+        if (cf.contains(item) == false) {
+            std::cout << item << std::endl;
+            EXPECT_EQ(cf.contains(item), true);
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

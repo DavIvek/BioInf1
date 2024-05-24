@@ -9,12 +9,14 @@
 
 // Constructor
 CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level):
-    number_of_buckets(number_of_buckets), fingerprint_size(fingerprint_size), bucket_size(bucket_size), current_size(0), max_kicks(100), current_level(current_level) {
+    number_of_buckets(number_of_buckets), bucket_size(bucket_size), current_size(0), max_kicks(100), current_level(current_level) {
         accept_values = true;
         child0 = nullptr;
         child1 = nullptr;
 
         buckets.reserve(number_of_buckets);
+
+        this->fingerprint_size = fingerprint_size - current_level;
 
         auto bits_per_bucket = bucket_size * fingerprint_size;
         auto bytes_per_bucket = (bits_per_bucket + 7) >> 3;
@@ -48,6 +50,10 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
     uint32_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item);
     fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
+
+    // now we take f - current_level bits from the fingerprint
+    fingerprint >>= current_level;
+
     if (fingerprint == 0) {
         fingerprint = 1;
     }
@@ -56,9 +62,6 @@ std::optional<uint32_t> CuckooFilter::insert(const std::string& item) {
 
     // save f - current_level bits from the fingerprint
     uint32_t saved_bits = fingerprint & ((1 << current_level) - 1);
-
-    // now we take f - current_level bits from the fingerprint
-    fingerprint >>= current_level;
 
     uint32_t index_to_use = index1; // should be random but cant due to mod
 
@@ -105,6 +108,10 @@ bool CuckooFilter::contains(const std::string& item) const {
     std::size_t index1 = hash(item) % number_of_buckets;
     uint32_t fingerprint = hash(item);
     fingerprint = fingerprint & ((1 << fingerprint_size) - 1);
+
+    // now we take f - current_level bits from the fingerprint
+    fingerprint >>= current_level;
+
     if (fingerprint == 0) {
         fingerprint = 1;
     }
