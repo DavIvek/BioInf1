@@ -26,7 +26,7 @@ public:
     bool remove(const std::string& item);
 
     // Get the current number of items in the filter
-    std::size_t size() const;
+    std::size_t size() const { return size_; }
 
     // Get the filter's capacity
     std::size_t capacity() const;
@@ -34,8 +34,11 @@ public:
 private:
     int false_positive_rate;
     std::size_t set_size;
+    std::size_t size_;
 
     CuckooFilter* root;
+    
+    int depth;
 
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;

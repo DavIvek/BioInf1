@@ -1,6 +1,7 @@
 #ifndef CUCKOO_FILTER_HPP
 #define CUCKOO_FILTER_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <unordered_set>
 #include <vector>
@@ -121,9 +122,9 @@ public:
     ~CuckooFilter();
 
     // Insert an item into the filter
-    std::optional<uint32_t> insert(const std::string& item);
+    std::optional<std::pair<uint32_t, uint32_t>> insert(const std::string& item);
 
-    void insert(const std::size_t victim);
+    void insert(std::optional<std::pair<uint32_t, uint32_t>> victim);
 
     // Check if an item is in the filter
     bool contains(const std::string& item) const;

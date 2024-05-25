@@ -128,7 +128,7 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {
-                victims.insert(result.value());
+                victims.insert(result->first);
                 j--;
                 break;
             }
@@ -159,7 +159,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {
-                victims.insert(result.value());
+                victims.insert(result->first);
                 j--;
                 break;
             }

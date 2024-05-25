@@ -25,5 +25,10 @@ target_include_directories(your_library PUBLIC src)
 add_executable(test_CF test/test_CF.cpp)
 target_link_libraries(test_CF gtest gtest_main your_library)
 
+# Add test executable
+add_executable(test_LDCF test/test_LDCF.cpp)
+target_link_libraries(test_LDCF gtest gtest_main your_library)
+
 # Add tests to CTest
 add_test(NAME TestCF COMMAND test_CF)
+add_test(NAME TestLDCF COMMAND test_LDCF)
