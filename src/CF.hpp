@@ -150,6 +150,8 @@ public:
 
     bool isFull() const;
 
+    void acceptValues(bool accept) { accept_values = accept; }
+
 private:
     std::size_t number_of_buckets;
     std::size_t fingerprint_size;

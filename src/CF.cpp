@@ -75,6 +75,28 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
 
     uint32_t index_to_use = index1;
 
+    // check how many of given fingerprint we already have in the buckets
+
+    std::size_t counter = 0;
+    for (std::size_t i = 0; i < bucket_size; i++) {
+        if (full_slots[index1 * bucket_size + i] != false) {
+            auto result1 = buckets[index1].read(i, fingerprint_size_temp);
+            if (result1 == fingerprint) {
+                counter++;
+            }
+        }
+        if (full_slots[index2 * bucket_size + i] != false) {
+            auto result2 = buckets[index2].read(i, fingerprint_size_temp);
+            if (result2 == fingerprint) {
+                counter++;
+            }
+        }
+    }
+
+    if (counter >= bucket_size) {
+        return std::nullopt;
+    }
+
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (full_slots[index_to_use * bucket_size + i] == false) {
             buckets[index_to_use].write(i, fingerprint, fingerprint_size_temp);
@@ -210,7 +232,7 @@ bool CuckooFilter::isFull() const {
 
 // Capacity of the filter
 std::size_t CuckooFilter::capacity() const {
-    return number_of_buckets * bucket_size * 0.8;
+    return number_of_buckets * bucket_size * 0.9;
 }
 
 // Size of the filter

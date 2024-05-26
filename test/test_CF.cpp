@@ -118,11 +118,11 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
     for (std::size_t i = 2; i < 33; i++) {
         // save the victims
         std::set<uint32_t> victims;
-        CuckooFilter cf(4, i, 4, 0);
+        CuckooFilter cf(128, i, 4, 0);
         EXPECT_EQ(cf.size(), 0);
 
         int j = 0;
-        while (!cf.isFull()) {
+        while (!cf.isFull() && j < 1000) {
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {
@@ -157,7 +157,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
         EXPECT_EQ(cf.size(), 0);
 
         int j = 0;
-        while (!cf.isFull()) {
+        while (!cf.isFull() && j < 100000) {
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {

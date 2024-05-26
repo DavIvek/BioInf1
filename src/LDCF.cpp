@@ -85,6 +85,7 @@ bool LogarithmicDynamicCuckooFilter::remove(const std::string& item) {
     while (true) {
         if (current_CF->contains(item)) {
             size_--;
+            current_CF->acceptValues(true);
             return current_CF->remove(item);
         }
         if (getPrefix(fingerprint, current_CF->current_level, current_CF->getFingerprintSize())) {
