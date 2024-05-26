@@ -22,11 +22,6 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
     auto current_CF = root;
     uint32_t fingerprint = hash(item);
     fingerprint = fingerprint & ((1 << current_CF->getFingerprintSize()) - 1);
-    uint32_t fingerprint_copy = 0;
-    if (item == "test2209") {
-        std::cout << "finger print " << fingerprint << std::endl;
-        fingerprint_copy = fingerprint;
-    }
 
     while (current_CF->isFull()) {
         if (getPrefix(fingerprint, current_level, current_CF->getFingerprintSize())) {
@@ -115,7 +110,5 @@ std::size_t LogarithmicDynamicCuckooFilter::hash(const std::string& item) const 
 bool LogarithmicDynamicCuckooFilter::getPrefix(const std::size_t fingerprint, const int current_level, const std::size_t fingerprintSize) const {
     // put the one to the position of the current level
     uint32_t mask = 1 << current_level;
-    // std::cout << "mask in bits " << std::bitset<32>(mask) << std::endl;
-    // std::cout << "fingerprint in bits " << std::bitset<32>(fingerprint) << std::endl;
     return (fingerprint & mask) == 0;
 }

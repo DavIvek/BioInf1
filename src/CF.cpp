@@ -94,10 +94,6 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
         buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size_temp);
         fingerprint = temp_fingerprint;
 
-        // if (fingerprint == fing_copy) {
-        //     std::cout << "naletili na isti fingerprint" << std::endl;
-        // }
-        // add the saved bits
         fingerprint <<= current_level;
         fingerprint |= saved_bits;
 

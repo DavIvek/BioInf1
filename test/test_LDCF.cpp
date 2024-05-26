@@ -65,26 +65,14 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, BigDurabilityTest) {
     auto k = 10000;
     for (std::size_t i = 2; i < k; ++i) {
         std::string item = "test" + std::to_string(i);
-        if (item == "test235") {
-            std::cout << "Checking item: " << item << std::endl;
-        }
         ldCF.insert(item);
-        if (ldCF.contains(item) == false) {
-            EXPECT_EQ(ldCF.contains(item), true);
-            std::cout << "Failed to insert item: " << item << std::endl;
-        }
+        EXPECT_EQ(ldCF.contains(item), true);
     }
 
     // Check if the items are in the filter
     for (std::size_t i = 2; i < k; ++i) {
-        std::string item = "test" + std::to_string(i);
-        if (item == "test235") {
-            std::cout << "Checking item: " << item << std::endl;
-        }
-        if (ldCF.contains(item) == false) {
-            EXPECT_EQ(ldCF.contains(item), true);
-            std::cout << "After insert, failed to find item: " << item << std::endl;
-        }
+        std::string item = "test" + std::to_string(i); 
+        EXPECT_EQ(ldCF.contains(item), true);
     }
 }
 
