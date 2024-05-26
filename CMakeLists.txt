@@ -32,3 +32,7 @@ target_link_libraries(test_LDCF gtest gtest_main your_library)
 # Add tests to CTest
 add_test(NAME TestCF COMMAND test_CF)
 add_test(NAME TestLDCF COMMAND test_LDCF)
+
+# Add benchmark executable for Bloom filter vs LDCF
+add_executable(benchmark_bloom_vs_ldcf benchmarks/bloom_vs_ldcf.cpp)
+target_link_libraries(benchmark_bloom_vs_ldcf your_library)

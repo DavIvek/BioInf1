@@ -16,7 +16,7 @@ LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const std::size_t
     auto single_CF_capacity = load_factor * number_of_buckets * 4;
 
     auto single_false_positive_rate = 1 - pow(1 - false_positive_rate, single_CF_capacity / set_size);
-    fingerprint_size = ceil(log2(2 * set_size / single_false_positive_rate) + expected_levels);
+    fingerprint_size = ceil(log2(2 * 4 / single_false_positive_rate) + expected_levels);
 
     root = new CuckooFilter(number_of_buckets, fingerprint_size, 4, 0);
 }
