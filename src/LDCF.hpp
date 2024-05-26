@@ -38,8 +38,6 @@ private:
 
     CuckooFilter* root;
     
-    int depth;
-
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
 

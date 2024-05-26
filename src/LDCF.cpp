@@ -7,7 +7,7 @@
 
 // Constructor
 LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const int false_positive_rate, const std::size_t set_size):
-    false_positive_rate(false_positive_rate), set_size(set_size), size_(0), depth(0) {
+    false_positive_rate(false_positive_rate), set_size(set_size), size_(0) {
     root = new CuckooFilter(set_size, 12, 4, 0); // change later
 }
 
@@ -23,7 +23,7 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
     uint32_t fingerprint = hash(item);
     fingerprint = fingerprint & ((1 << current_CF->getFingerprintSize()) - 1);
     uint32_t fingerprint_copy = 0;
-    if (item == "test708") {
+    if (item == "test2209") {
         std::cout << "finger print " << fingerprint << std::endl;
         fingerprint_copy = fingerprint;
     }
@@ -44,15 +44,10 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
     }
 
     auto victim = current_CF->insert(item);
-    if (victim->first == fingerprint_copy && fingerprint_copy != 0) {
-        std::cout << "victim " << victim->first << " " << victim->second << std::endl;
-        std::cout << "fingerprint_copy " << fingerprint_copy << std::endl;
-    }
     if (victim.has_value()) {
-        depth++;
-        current_CF->child0 = new CuckooFilter(set_size, 12, 4, current_level + 1);
-        current_CF->child1 = new CuckooFilter(set_size, 12, 4, current_level + 1);
-        if (getPrefix(victim->first, current_level + 1, current_CF->getFingerprintSize())) {
+        current_CF->child0 = new CuckooFilter(set_size, 12, 4, current_level);
+        current_CF->child1 = new CuckooFilter(set_size, 12, 4, current_level);
+        if (getPrefix(victim->first, current_level, current_CF->getFingerprintSize())) {
             current_CF->child0->insert(victim.value());
         } else {
             current_CF->child1->insert(victim.value());
@@ -71,7 +66,7 @@ bool LogarithmicDynamicCuckooFilter::contains(const std::string& item) const {
         if (current_CF->contains(item)) {
             return true;
         }
-        if (getPrefix(fingerprint, current_CF->current_level, current_CF->getFingerprintSize())) {
+        if (getPrefix(fingerprint, current_level, current_CF->getFingerprintSize())) {
             if (current_CF->child0 == nullptr) {
                 return false;
             }

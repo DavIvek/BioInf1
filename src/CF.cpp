@@ -64,13 +64,14 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
 
     uint32_t index2 = (index1 ^ hash(fingerprint)) % number_of_buckets;
 
-    // now we take f - current_level bits from the fingerprint
-    fingerprint >>= current_level;
-
-    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
-
     // save f - current_level bits from the fingerprint
     uint32_t saved_bits = fingerprint & ((1 << current_level) - 1);
+
+    // now we take f - current_level bits from the fingerprint
+    fingerprint >>= current_level;
+    uint32_t fing_copy = fingerprint;
+
+    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
 
     uint32_t index_to_use = index1;
 
@@ -86,8 +87,19 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
     for (std::size_t i = 0; i < max_kicks; i++) {
         std::size_t bucket_index = rand() % bucket_size;
         std::uint32_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size_temp);
+        if (i != 0) {
+            fingerprint >>= current_level;
+        }
+
         buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size_temp);
         fingerprint = temp_fingerprint;
+
+        // if (fingerprint == fing_copy) {
+        //     std::cout << "naletili na isti fingerprint" << std::endl;
+        // }
+        // add the saved bits
+        fingerprint <<= current_level;
+        fingerprint |= saved_bits;
 
         index_of_victim = index_to_use;
 
@@ -95,6 +107,7 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
 
         for (std::size_t j = 0; j < bucket_size; j++) {
             if (full_slots[index_to_use * bucket_size + j] == false) {
+                fingerprint >>= current_level;
                 buckets[index_to_use].write(j, fingerprint, fingerprint_size_temp);
                 full_slots[index_to_use * bucket_size + j] = true;
                 current_size++;
@@ -102,10 +115,6 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
             }
         }
     }
-
-    // now if we are here we have to restore the fingerprint
-    fingerprint <<= current_level;
-    fingerprint |= saved_bits;
 
     accept_values = false;
 
