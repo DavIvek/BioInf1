@@ -1,6 +1,7 @@
 #ifndef LOG_DCF_HPP
 #define LOG_DCF_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -11,7 +12,7 @@
 class LogarithmicDynamicCuckooFilter {
 public:
     // Constructor
-    LogarithmicDynamicCuckooFilter(const int false_positive_rate, const std::size_t set_size);
+    LogarithmicDynamicCuckooFilter(const std::size_t false_positive_rate, const std::size_t set_size, const std::size_t expected_levels);
 
     // Destructor
     ~LogarithmicDynamicCuckooFilter();
@@ -35,6 +36,9 @@ private:
     int false_positive_rate;
     std::size_t set_size;
     std::size_t size_;
+
+    std::size_t number_of_buckets;
+    std::size_t fingerprint_size;
 
     CuckooFilter* root;
     

@@ -1,14 +1,24 @@
 #include "CF.hpp"
 #include "LDCF.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <bitset>   
+#include <math.h>
 #include <sys/types.h>
 
 // Constructor
-LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const int false_positive_rate, const std::size_t set_size):
-    false_positive_rate(false_positive_rate), set_size(set_size), size_(0) {
-    root = new CuckooFilter(set_size, 12, 4, 0); // change later
+LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const std::size_t false_positive_rate, const std::size_t set_size, const std::size_t expected_levels):
+    size_(0) {
+    // optimal bucket size -> 4
+    number_of_buckets = set_size / (4 * expected_levels);
+    auto load_factor = 0.935;
+    auto single_CF_capacity = load_factor * number_of_buckets * 4;
+
+    auto single_false_positive_rate = 1 - pow(1 - false_positive_rate, single_CF_capacity / set_size);
+    fingerprint_size = ceil(log2(2 * set_size / single_false_positive_rate) + expected_levels);
+
+    root = new CuckooFilter(number_of_buckets, fingerprint_size, 4, 0);
 }
 
 // Destructor
@@ -26,12 +36,12 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
     while (current_CF->isFull()) {
         if (getPrefix(fingerprint, current_level, current_CF->getFingerprintSize())) {
             if (current_CF->child0 == nullptr) {
-                current_CF->child0 = new CuckooFilter(set_size, 12, 4, current_level + 1);
+                current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level + 1);
             }
             current_CF = current_CF->child0;
         } else {
             if (current_CF->child1 == nullptr) {
-                current_CF->child1 = new CuckooFilter(set_size, 12, 4, current_level + 1);
+                current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level + 1);
             }
             current_CF = current_CF->child1;
         }
@@ -40,8 +50,8 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
 
     auto victim = current_CF->insert(item);
     if (victim.has_value()) {
-        current_CF->child0 = new CuckooFilter(set_size, 12, 4, current_level);
-        current_CF->child1 = new CuckooFilter(set_size, 12, 4, current_level);
+        current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level);
+        current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level);
         if (getPrefix(victim->first, current_level, current_CF->getFingerprintSize())) {
             current_CF->child0->insert(victim.value());
         } else {
