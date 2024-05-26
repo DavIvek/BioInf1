@@ -52,7 +52,7 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
         depth++;
         current_CF->child0 = new CuckooFilter(set_size, 12, 4, current_level + 1);
         current_CF->child1 = new CuckooFilter(set_size, 12, 4, current_level + 1);
-        if (getPrefix(victim->first, current_level, current_CF->getFingerprintSize())) {
+        if (getPrefix(victim->first, current_level + 1, current_CF->getFingerprintSize())) {
             current_CF->child0->insert(victim.value());
         } else {
             current_CF->child1->insert(victim.value());

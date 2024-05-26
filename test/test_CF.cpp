@@ -22,9 +22,7 @@ protected:
         std::hash<std::string> hash_fn;
         std::size_t hash_value = hash_fn(item);
         uint32_t fingerprint = hash_value & ((1 << fingerprint_size) - 1);
-        if (fingerprint == 0) {
-            fingerprint = 1;
-        }
+
         return fingerprint;
     }
 };
@@ -132,6 +130,10 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
                 j--;
                 break;
             }
+            else {
+                // Check if the item is in the filter
+                EXPECT_EQ(cf.contains(item), true);
+            }
             j++;
         }
 
@@ -191,10 +193,7 @@ TEST_F(CuckooFilterTest, MultipleLevelsTest) {
     // Check if the items are in the filter
     for (int i = 0; i < 20; i++) {
         std::string item = "test" + std::to_string(i);
-        if (cf.contains(item) == false) {
-            std::cout << item << std::endl;
-            EXPECT_EQ(cf.contains(item), true);
-        }
+        EXPECT_EQ(cf.contains(item), true);
     }
 }
 

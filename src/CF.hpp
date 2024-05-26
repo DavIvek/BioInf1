@@ -46,6 +46,7 @@ struct Bucket {
         }
         else if (fingerprint_size <= 16) {
             // two bytes -> write to whole bytes
+            bit_array_copy += (position << 1);
             *(uint16_t*)(bit_array_copy) = fingerprint;
         }
         else if (fingerprint_size <= 24) {
@@ -89,6 +90,7 @@ struct Bucket {
             }
         }
         else if (fingerprint_size <= 16) {
+            bit_array_copy += (position << 1);
             fingerprint = *(uint16_t*)(bit_array_copy) & 0xFFFF;
         }
         else if (fingerprint_size <= 24) {
@@ -152,9 +154,9 @@ private:
 
     bool accept_values;
 
-    std::unordered_set<uint32_t> kicked_fingerprints;
-
     std::vector<Bucket> buckets;
+
+    std::vector<bool> full_slots; 
 
     // Hash function for generating indices
     std::size_t hash(const std::string& item) const;
@@ -162,6 +164,8 @@ private:
     std::size_t hash(const std::size_t item) const;
 
     uint32_t createFingerprint(const std::string& item) const;
+
+    std::size_t nextPowerOfTwo(std::size_t n) const;
 };
 
 #endif // CUCKOO_FILTER_HPP
