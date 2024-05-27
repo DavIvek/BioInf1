@@ -75,10 +75,22 @@ private:
 
     CuckooFilter* root;
     
-    // Hash function for generating indices
+    /**
+     * Hash a string.
+     * 
+     * @param item The string to hash.
+     * @return The hash of the string.
+     */
     std::size_t hash(const std::string& item) const;
 
-    // Get prefix of fingerprint
+    /**
+     * Get the prefix of the fingerprint.
+     * 
+     * @param fingerprint The fingerprint.
+     * @param current_level The current level.
+     * @param fingerprintSize The size of the fingerprint.
+     * @return The prefix of the fingerprint.
+     */
     bool getPrefix(const std::size_t fingerprint, const int current_level, const std::size_t fingerprintSize) const;
 };
 

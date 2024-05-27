@@ -204,13 +204,25 @@ private:
 
     std::vector<bool> full_slots; 
 
-    // Hash function for generating indices
+    /**
+     * Hash a string
+     * @param item The string to hash
+     * @return The hash of the string
+     */
     std::size_t hash(const std::string& item) const;
 
+    /**
+     * Hash a size_t
+     * @param item The size_t to hash
+     * @return The hash of the size_t
+     */
     std::size_t hash(const std::size_t item) const;
 
-    uint32_t createFingerprint(const std::string& item) const;
-
+    /**
+     * Get next power of two
+     * @param n The number to get the next power of two for
+     * @return The next power of two
+     */
     std::size_t nextPowerOfTwo(std::size_t n) const;
 };
 
