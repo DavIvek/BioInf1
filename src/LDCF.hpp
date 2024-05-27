@@ -12,7 +12,7 @@
 class LogarithmicDynamicCuckooFilter {
 public:
     // Constructor
-    LogarithmicDynamicCuckooFilter(const std::size_t false_positive_rate, const std::size_t set_size, const std::size_t expected_levels);
+    LogarithmicDynamicCuckooFilter(const std::size_t false_positive_rate, const std::size_t set_size, const std::size_t expected_levels, const std::size_t fingerprint_size);
 
     // Destructor
     ~LogarithmicDynamicCuckooFilter();

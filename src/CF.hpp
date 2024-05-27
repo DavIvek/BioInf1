@@ -31,19 +31,16 @@ struct Bucket {
             // one byte -> write to whole byte
             bit_array_copy += position;
             *(uint8_t*)(bit_array_copy) = fingerprint;
-            // std::cout << "byte written: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << std::endl;
         }
         else if (fingerprint_size <= 12) {
             bit_array_copy += (position + (position >> 1));
             if (position & 1) {
                 *(uint16_t*)(bit_array_copy) &= 0x000F; // Clear the upper 12 bits
                 *(uint16_t*)(bit_array_copy) |= (fingerprint << 4); // Set the upper 12 bits
-                // std::cout << "byte written: " << std::bitset<12>(*(uint8_t*)(bit_array_copy)) << std::endl;
             }
             else {
                 *(uint16_t*)(bit_array_copy) &= 0xF000; // Clear the lower 12 bits
                 *(uint16_t*)(bit_array_copy) |= (fingerprint); // Set the lower 12 bits
-                // std::cout << "byte written: " << std::bitset<12>(*(uint8_t*)(bit_array_copy)) << std::endl;
             }
         }
         else if (fingerprint_size <= 16) {

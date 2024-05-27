@@ -52,9 +52,15 @@ DynamicBloomFilter::DynamicBloomFilter(int n,  int m){
 }
 
 DynamicBloomFilter::~DynamicBloomFilter(){
-	delete curSBF;
-	delete nextSBF;
-	delete sbf_list;
+	if (sbf_list != NULL){
+		delete sbf_list;
+	}
+	if (curSBF != NULL){
+		delete curSBF;
+	}
+	if (nextSBF != NULL){
+		delete nextSBF;
+	}
 }
 
 bool DynamicBloomFilter::insertItem(const char* item){

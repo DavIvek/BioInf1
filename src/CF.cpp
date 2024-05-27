@@ -31,6 +31,9 @@ CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_
 
         auto bits_per_bucket = bucket_size * fingerprint_size;
         auto bytes_per_bucket = (bits_per_bucket + 7) >> 3;
+        if (bytes_per_bucket == 0) {
+            bytes_per_bucket = 1;
+        }
         for (std::size_t i = 0; i < this->number_of_buckets; i++) {
             buckets[i].bit_array = new char[bytes_per_bucket];
             // 0 out the bucket

@@ -34,7 +34,7 @@ int main() {
     auto strings = generate_random_strings(num_strings, string_length);
 
     // Initialize LogarithmicDynamicCuckooFilter
-    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, set_size, expected_levels);
+    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, set_size, expected_levels, string_length - 2);
 
     // Initialize Bloom filter
     bloom_parameters parameters;

@@ -7,82 +7,44 @@
 
 #include "hashfunctions.h"
 #include <cstring>
-#include <openssl/evp.h>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <functional>
+
+// Helper function to convert hash to hex string
+std::string hashToHex(size_t hash) {
+    std::stringstream ss;
+    ss << std::hex << std::setw(sizeof(size_t) * 2) << std::setfill('0') << hash;
+    return ss.str();
+}
 
 char* HashFunc::sha1(const char* key) {
-    EVP_MD_CTX *mdctx;
-    unsigned char value[EVP_MAX_MD_SIZE];
-    unsigned int md_len;
+    static char result[sizeof(size_t) * 2 + 1]; // To hold hex string of hash
 
-    // Allocate and initialize the context
-    mdctx = EVP_MD_CTX_new();
-    if (mdctx == NULL) {
-        // Handle error
-        return NULL;
-    }
+    // Use std::hash for demonstration purposes
+    std::hash<std::string> hasher;
+    size_t hash_value = hasher(key);
 
-    // Initialize the digest context
-    if (EVP_DigestInit_ex(mdctx, EVP_sha1(), NULL) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
+    // Convert hash to hex string
+    std::string hexStr = hashToHex(hash_value);
+    strncpy(result, hexStr.c_str(), sizeof(result));
+    result[sizeof(result) - 1] = '\0'; // Ensure null-termination
 
-    // Update the digest with the key
-    if (EVP_DigestUpdate(mdctx, key, strlen(key)) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
-
-    // Finalize the digest
-    if (EVP_DigestFinal_ex(mdctx, value, &md_len) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
-
-    // Clean up
-    EVP_MD_CTX_free(mdctx);
-
-    return (char*)value;
+    return result;
 }
 
 char* HashFunc::md5(const char* key) {
-    EVP_MD_CTX *mdctx;
-    unsigned char value[EVP_MAX_MD_SIZE];
-    unsigned int md_len;
+    static char result[sizeof(size_t) * 2 + 1]; // To hold hex string of hash
 
-    // Allocate and initialize the context
-    mdctx = EVP_MD_CTX_new();
-    if (mdctx == NULL) {
-        // Handle error
-        return NULL;
-    }
+    // Use std::hash for demonstration purposes
+    std::hash<std::string> hasher;
+    size_t hash_value = hasher(key);
 
-    // Initialize the digest context
-    if (EVP_DigestInit_ex(mdctx, EVP_md5(), NULL) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
+    // Convert hash to hex string
+    std::string hexStr = hashToHex(hash_value);
+    strncpy(result, hexStr.c_str(), sizeof(result));
+    result[sizeof(result) - 1] = '\0'; // Ensure null-termination
 
-    // Update the digest with the key
-    if (EVP_DigestUpdate(mdctx, key, strlen(key)) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
-
-    // Finalize the digest
-    if (EVP_DigestFinal_ex(mdctx, value, &md_len) != 1) {
-        // Handle error
-        EVP_MD_CTX_free(mdctx);
-        return NULL;
-    }
-
-    // Clean up
-    EVP_MD_CTX_free(mdctx);
-
-    return (char*)value;
+    return result;
 }
