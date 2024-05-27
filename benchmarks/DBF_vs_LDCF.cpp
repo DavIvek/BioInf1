@@ -24,20 +24,20 @@ std::vector<std::string> generate_random_strings(std::size_t n, std::size_t leng
 }
 
 int main() {
-    const std::size_t num_strings = 100000;
+    const std::size_t num_strings = 1000000;
     const std::size_t string_length = 10;
-    const double false_positive_rate = 0.0001;
-    const std::size_t set_size = 100000;
+    const double false_positive_rate = 0.01;
+    const std::size_t set_size = 1000000;
     const std::size_t expected_levels = 3;
 
     // Generate random strings
     auto strings = generate_random_strings(num_strings, string_length);
 
     // Initialize LogarithmicDynamicCuckooFilter
-    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, set_size, expected_levels, string_length - 2);
+    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, set_size, expected_levels);
 
     //Instantiate Bloom Filter
-    DynamicBloomFilter bloom_filter(set_size, false_positive_rate, 6);
+    DynamicBloomFilter bloom_filter(set_size, false_positive_rate, expected_levels);
 
     // Insert strings into both filters and measure insertion time
     auto start = std::chrono::high_resolution_clock::now();
@@ -58,13 +58,16 @@ int main() {
 
     // Check for false positives
     std::unordered_map<std::string, bool> string_map;
+    string_map.reserve(num_strings);
     for (const auto& str : strings) {
-        string_map[str] = true;
+        string_map.emplace(str, true);
     }
 
+    std::cout << "number of elements in map " << string_map.size() << std::endl;
     std::size_t ldcf_false_positives = 0;
     std::size_t bloom_false_positives = 0;
-    auto false_strings = generate_random_strings(num_strings, string_length);
+    auto false_strings = generate_random_strings(num_strings / 1000, string_length);
+    std::cout << "number of false strings " << false_strings.size() << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
     for (const auto& str : false_strings) {
@@ -72,6 +75,15 @@ int main() {
             ldcf_false_positives++;
         }
     }
+    
+    // now check if the inserted strings are present
+    int elements_not_present_ldcf = 0;
+    for (const auto& str : strings) {
+        if (!ldcf.contains(str)) {
+            elements_not_present_ldcf++;
+        }
+    }
+
     end = std::chrono::high_resolution_clock::now();
     auto ldcf_check_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
@@ -83,6 +95,15 @@ int main() {
             bloom_false_positives++;
         }
     }
+    int elements_not_present_bloom = 0;
+    for (const auto& str : strings) {
+        // take pointer to char
+        auto c_str = str.c_str();
+        if (!bloom_filter.queryItem(c_str)) {
+            elements_not_present_bloom++;
+        }
+    }
+
     end = std::chrono::high_resolution_clock::now();
     auto bloom_check_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
@@ -94,7 +115,9 @@ int main() {
     std::cout << "LDCF Check Time: " << ldcf_check_time << " ms\n";
     std::cout << "Bloom Filter Check Time: " << bloom_check_time << " ms\n";
     std::cout << "LDCF False Positive Rate: " << ldcf_fp_rate << "\n";
+    std::cout << "Elements not present in LDCF: " << elements_not_present_ldcf << "\n";
     std::cout << "Bloom Filter False Positive Rate: " << bloom_fp_rate << "\n";
+    std::cout << "Elements not present in Bloom Filter: " << elements_not_present_bloom << "\n";
 
     return 0;
 }

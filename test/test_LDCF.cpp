@@ -19,7 +19,7 @@ protected:
 };
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, BasicFunctionalityTest) {
-    LogarithmicDynamicCuckooFilter ldCF(100, 4, 1, 3);
+    LogarithmicDynamicCuckooFilter ldCF(100, 4, 1);
     EXPECT_EQ(ldCF.size(), 0);
 
     ldCF.insert("test");
@@ -34,7 +34,7 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, BasicFunctionalityTest) {
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, MultipleInsertsTest) {
     // Create small logarithmic dynamic cuckoo filter
-    LogarithmicDynamicCuckooFilter ldCF(24, 4, 1, 3);
+    LogarithmicDynamicCuckooFilter ldCF(24, 4, 1);
     EXPECT_EQ(ldCF.size(), 0);
 
     // Insert 4 items
@@ -59,7 +59,7 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, MultipleInsertsTest) {
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, BigDurabilityTest) {
     // Test with a large number of inserts
-    LogarithmicDynamicCuckooFilter ldCF(10, 100, 6, 5);
+    LogarithmicDynamicCuckooFilter ldCF(10, 100, 6);
     EXPECT_EQ(ldCF.size(), 0);
 
     auto k = 10000;

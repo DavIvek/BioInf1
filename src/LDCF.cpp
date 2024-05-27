@@ -8,16 +8,21 @@
 #include <sys/types.h>
 
 // Constructor
-LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const std::size_t false_positive_rate, const std::size_t set_size, const std::size_t expected_levels, const std::size_t fingerprint_size):
-    size_(0), fingerprint_size(fingerprint_size) {
+LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const double false_positive_rate, const std::size_t set_size, const std::size_t expected_levels):
+    size_(0) {
     // optimal bucket size -> 4
     number_of_buckets = set_size / (4 * expected_levels);
     auto load_factor = 0.935;
     auto single_CF_capacity = load_factor * number_of_buckets * 4;
 
     auto single_false_positive_rate = 1 - pow(1 - false_positive_rate, single_CF_capacity / set_size);
+    this->fingerprint_size = log2(8.0/single_false_positive_rate);
+    this->fingerprint_size = ceil(this->fingerprint_size + expected_levels);
+    if (this->fingerprint_size > 32) {
+        this->fingerprint_size = 32;
+    }
 
-    root = new CuckooFilter(number_of_buckets, fingerprint_size, 4, 0);
+    root = new CuckooFilter(number_of_buckets, this->fingerprint_size, 4, 0);
 }
 
 // Destructor
