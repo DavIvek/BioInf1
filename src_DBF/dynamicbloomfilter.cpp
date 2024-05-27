@@ -52,14 +52,14 @@ DynamicBloomFilter::DynamicBloomFilter(int n,  int m){
 }
 
 DynamicBloomFilter::~DynamicBloomFilter(){
-	if (sbf_list != NULL){
-		delete sbf_list;
-	}
 	if (curSBF != NULL){
 		delete curSBF;
 	}
 	if (nextSBF != NULL){
 		delete nextSBF;
+	}
+	if (sbf_list != NULL){
+		delete sbf_list;
 	}
 }
 

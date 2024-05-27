@@ -24,11 +24,11 @@ std::vector<std::string> generate_random_strings(std::size_t n, std::size_t leng
 }
 
 int main() {
-    const std::size_t num_strings = 1000000;
+    const std::size_t num_strings = 100000;
     const std::size_t string_length = 10;
-    const double false_positive_rate = 0.01;
-    const std::size_t set_size = 1000000;
-    const std::size_t expected_levels = 3;
+    const double false_positive_rate = 0.001;
+    const std::size_t set_size = 100000;
+    const std::size_t expected_levels = 2;
 
     // Generate random strings
     auto strings = generate_random_strings(num_strings, string_length);
