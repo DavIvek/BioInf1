@@ -13,6 +13,7 @@
 struct Bucket {
     char *bit_array;
 
+    // write fingerprint to the bucket
     void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {   
         char *bit_array_copy= bit_array;
         if (fingerprint_size <= 4) {
@@ -50,7 +51,7 @@ struct Bucket {
         }
         else if (fingerprint_size <= 24) {
             bit_array_copy += (position + (position << 1));
-            *(uint32_t*)(bit_array_copy) &= 0xFF000000; // Clear the upper 24 bits
+            *(uint32_t*)(bit_array_copy) &= 0xFF000000;  // Clear the upper 24 bits
             *(uint32_t*)(bit_array_copy) |= fingerprint; // Set the upper 24 bits
         }
         else {
@@ -60,6 +61,7 @@ struct Bucket {
         }
     }
 
+    // read fingerprint from the bucket
     uint32_t read(std::size_t position, std::size_t fingerprint_size) const {
         uint32_t fingerprint = 0;
         const char *bit_array_copy = bit_array;
@@ -78,17 +80,14 @@ struct Bucket {
         else if (fingerprint_size <= 8) {
             bit_array_copy += position;
             fingerprint = *(uint8_t*)(bit_array_copy) & 0xFF;
-            // std::cout << "byte: " << std::bitset<8>(*(uint8_t*)(bit_array_copy)) << std::endl;
         }
         else if (fingerprint_size <= 12) {
             bit_array_copy += (position + (position >> 1));
             if (position & 1) {
                 fingerprint = (*(uint16_t*)(bit_array_copy) >> 4 & 0xFFF); // Read the upper 12 bits
-                // std::cout << "byte: " << std::bitset<12>(*(uint8_t*)(bit_array_copy)) << std::endl;
             }
             else {
                 fingerprint = (*(uint16_t*)(bit_array_copy) & 0xFFF); // Read the lower 12 bits
-                // std::cout << "byte: " << std::bitset<12>(*(uint8_t*)(bit_array_copy)) << std::endl;
             }
         }
         else if (fingerprint_size <= 16) {
@@ -111,6 +110,9 @@ struct Bucket {
     }
 };
 
+/**
+ * Cuckoo Filter implementation
+ */
 class CuckooFilter {
 public:
 
@@ -119,34 +121,74 @@ public:
     CuckooFilter* child0;
     CuckooFilter* child1;
 
-    // Constructor
+    /**
+     * Constructor
+     * @param number_of_buckets Number of buckets in the filter
+     * @param fingerprint_size Size of the fingerprint in bits
+     * @param bucket_size Number of entries in each bucket
+     */
     CuckooFilter(const std::size_t number_of_buckets, const std::size_t fingerprint_size, const std::size_t bucket_size, int current_level);
 
-    // Destructor
+    /**
+     * Destructor
+     */
     ~CuckooFilter();
 
-    // Insert an item into the filter
+    /**
+     * Insert an item into the filter
+     * @param item Item to insert
+     * @return std::nullopt if the filter is full, otherwise the victim item and its index
+     */
     std::optional<std::pair<uint32_t, uint32_t>> insert(const std::string& item);
 
+    /**
+     * Check if an item is in the filter
+     * @param victim victim to insert
+     */
     void insert(std::optional<std::pair<uint32_t, uint32_t>> victim);
 
-    // Check if an item is in the filter
+    /**
+     * Check if an item is in the filter
+     * @param item Item to check
+     * @return True if the item is in the filter, false otherwise
+     */
     bool contains(const std::string& item) const;
 
-    // Remove an item from the filter
+    /**
+     * Remove an item from the filter
+     * @param item Item to remove
+     * @return True if the item was removed, false otherwise
+     */
     bool remove(const std::string& item);
 
-    // Get the current number of items in the filter
+    /**
+     * Get the filter's size
+     * @return The number of items in the filter
+     */
     std::size_t size() const;
 
-    // Get the filter's capacity
+    /**
+     * Get the filter's capacity
+     * @return The maximum number of items the filter can hold
+     */
     std::size_t capacity() const;
 
-    // Get the fingerprint size
+    /**
+     * Get the filter's fingerprint size
+     * @return The size of the fingerprint in bits
+     */
     std::size_t getFingerprintSize() const { return fingerprint_size; }
 
+    /**
+     * Check if the filter is full
+     * @return True if the filter is full, false otherwise
+     */
     bool isFull() const;
 
+    /**
+     * Accept values
+     * @param accept True if the filter should accept values, false otherwise
+     */
     void acceptValues(bool accept) { accept_values = accept; }
 
 private:

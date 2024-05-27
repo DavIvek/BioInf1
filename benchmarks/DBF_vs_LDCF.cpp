@@ -28,7 +28,7 @@ int main() {
     const std::size_t string_length = 10;
     const double false_positive_rate = 0.001;
     const std::size_t set_size = 100000;
-    const std::size_t expected_levels = 2;
+    const std::size_t expected_levels = 3;
 
     // Generate random strings
     auto strings = generate_random_strings(num_strings, string_length);

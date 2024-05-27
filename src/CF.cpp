@@ -20,7 +20,7 @@ CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_
 
         buckets.reserve(this->number_of_buckets);
 
-        this->fingerprint_size = fingerprint_size;
+        this->fingerprint_size = fingerprint_size - current_level;
         if (this->fingerprint_size < 1) {
             this->fingerprint_size = 1;
         }

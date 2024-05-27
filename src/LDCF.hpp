@@ -9,27 +9,60 @@
 
 #include "CF.hpp"
 
+/**
+ * A logarithmic dynamic cuckoo filter implementation.
+ */
 class LogarithmicDynamicCuckooFilter {
 public:
-    // Constructor
+    /**
+     * Constructor.
+     * 
+     * @param false_positive_rate The desired false positive rate.
+     * @param set_size The expected number of items in the set.
+     * @param expected_levels The expected number of levels in the filter.
+     */
     LogarithmicDynamicCuckooFilter(const double false_positive_rate, const std::size_t set_size, const std::size_t expected_levels);
 
-    // Destructor
+    /**
+     * Destructor.
+     */
     ~LogarithmicDynamicCuckooFilter();
 
-    // Insert an item into the filter
+    /**
+     * Insert an item into the filter.
+     * 
+     * @param item The item to insert.
+     */
     void insert(const std::string& item);
 
-    // Check if an item is in the filter
+    /**
+     * Check if an item is in the filter.
+     * 
+     * @param item The item to check.
+     * @return True if the item is in the filter, false otherwise.
+     */
     bool contains(const std::string& item) const;
 
-    // Remove an item from the filter
+    /**
+     * Remove an item from the filter.
+     * 
+     * @param item The item to remove.
+     * @return True if the item was removed, false otherwise.
+     */
     bool remove(const std::string& item);
 
-    // Get the current number of items in the filter
+    /**
+     * Get the filter's size.
+     * 
+     * @return The number of items in the filter.
+     */
     std::size_t size() const { return size_; }
 
-    // Get the filter's capacity
+    /**
+     * Get the filter's capacity.
+     * 
+     * @return The maximum number of items the filter can hold.
+     */
     std::size_t capacity() const;
 
 private:
