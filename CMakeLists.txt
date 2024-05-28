@@ -20,8 +20,7 @@ enable_testing()
 # Add Google Test
 add_subdirectory(third_party/googletest)
 
-# Find OpenSSL
-find_package(OpenSSL REQUIRED)
+
 
 # Add source files
 add_library(your_library
@@ -36,10 +35,8 @@ add_library(your_library
 # Include directories
 target_include_directories(your_library PUBLIC src)
 target_include_directories(your_library PUBLIC src_DBF)
-target_include_directories(your_library PUBLIC ${OPENSSL_INCLUDE_DIR})
 
-# Link OpenSSL libraries
-target_link_libraries(your_library PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+
 
 # Add test executable
 add_executable(test_CF test/test_CF.cpp)

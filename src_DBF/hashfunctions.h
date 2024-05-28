@@ -1,7 +1,6 @@
 #ifndef HASHFUNCTIONS_H_
 #define HASHFUNCTIONS_H_
 
-#include<openssl/evp.h>
 
 class HashFunc{
 public:

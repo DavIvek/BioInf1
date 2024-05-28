@@ -1,41 +1,65 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
-#include "bloom_filter.h"
+#include <vector>
+#include <gtest/gtest.h>
+#include "LDCF.hpp"
 
-void loadReads(const std::string& filename, BloomFilter& bf) {
-    std::ifstream file(filename);
-    std::string line;
-    while (std::getline(file, line)) {
-        if (!line.empty() && line[0] != '@') {
-            bf.add(line);
-        }
+class LogarithmicDynamicCuckooFilterTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        srand(42);
     }
-}
 
-void testReads(const std::string& filename, BloomFilter& bf) {
-    std::ifstream file(filename);
-    std::string line;
-    size_t found = 0, notFound = 0;
-    while (std::getline(file, line)) {
-        if (!line.empty() && line[0] != '@') {
-            if (bf.contains(line)) {
-                found++;
-            } else {
-                notFound++;
+    void TearDown() override {
+    }
+
+    // Helper function to load reads from a FASTQ file
+    void loadReadsFromFastq(const std::string& filename, std::vector<std::string>& reads) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw std::runtime_error("Unable to open file: " + filename);
+        }
+        std::string line;
+        int line_number = 0;
+        while (std::getline(file, line)) {
+            if (line_number % 4 == 1) {
+                reads.push_back(line);
             }
+            line_number++;
         }
     }
-    std::cout << "Found: " << found << ", Not Found: " << notFound << std::endl;
+};
+
+TEST_F(LogarithmicDynamicCuckooFilterTest, RealDataTest) {
+    std::vector<std::string> reads1, reads2;
+    loadReadsFromFastq("reads_1.fq", reads1);
+    loadReadsFromFastq("reads_2.fq", reads2);
+    LogarithmicDynamicCuckooFilter ldCF(0.1, 4, 1);
+
+    // Insert reads from the first file and check their presence
+    for (const auto& read : reads1) {
+        ldCF.insert(read);
+        EXPECT_EQ(ldCF.contains(read), true);
+    }
+
+    // Check if reads from the first file are present
+    for (const auto& read : reads1) {
+        EXPECT_EQ(ldCF.contains(read), true);
+    }
+
+    // Insert reads from the second file and check their presence
+    for (const auto& read : reads2) {
+        ldCF.insert(read);
+        EXPECT_EQ(ldCF.contains(read), true);
+    }
+
+    // Check if reads from the second file are present
+    for (const auto& read : reads2) {
+        EXPECT_EQ(ldCF.contains(read), true);
+    }
 }
 
-int main() {
-    const size_t bloomSize = 100000;
-    const size_t hashCount = 5;
-    BloomFilter bf(bloomSize, hashCount);
-
-    loadReads("reads_1.fq", bf);
-    testReads("reads_2.fq", bf);
-
-    return 0;
-}
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
