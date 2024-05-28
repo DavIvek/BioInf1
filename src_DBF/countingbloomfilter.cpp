@@ -41,11 +41,7 @@ CountingBloomFilter::CountingBloomFilter(int n, int m){
 	}
 }
 
-CountingBloomFilter::~CountingBloomFilter(){
-	delete [] bits;
-	delete next;
-	delete front;
-}
+CountingBloomFilter::~CountingBloomFilter(){}
 
 bool CountingBloomFilter::write(unsigned long int hash_value, int counter){
 	if(counter > 15) {
