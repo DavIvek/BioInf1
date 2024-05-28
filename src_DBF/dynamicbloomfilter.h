@@ -23,12 +23,8 @@ public:
 	}
 
 	~LinkList(){
-		if (cf_pt != NULL){
-			delete cf_pt;
-		}
-		if (tail_pt != NULL){
-			delete tail_pt;
-		}
+		delete cf_pt;
+		delete tail_pt;
 	}
 };
 
