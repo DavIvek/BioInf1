@@ -41,9 +41,14 @@ target_link_libraries(test_CF gtest gtest_main your_library)
 add_executable(test_LDCF test/test_LDCF.cpp)
 target_link_libraries(test_LDCF gtest gtest_main your_library)
 
+# Add test executable
+add_executable(test_bucket test/test_bucket.cpp)
+target_link_libraries(test_bucket gtest gtest_main your_library)
+
 # Add tests to CTest
 add_test(NAME TestCF COMMAND test_CF)
 add_test(NAME TestLDCF COMMAND test_LDCF)
+add_test(NAME TestBucket COMMAND test_bucket)
 
 # Add benchmark executable for LDCF vs src_DBF
 add_executable(DBF_vs_LDCF benchmarks/DBF_vs_LDCF.cpp)

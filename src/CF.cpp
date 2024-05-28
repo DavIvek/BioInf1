@@ -32,13 +32,13 @@ CuckooFilter::CuckooFilter(const std::size_t number_of_buckets, const std::size_
             full_slots.push_back(false);
         }
 
-        auto bits_per_bucket = bucket_size * fingerprint_size;
+        auto bits_per_bucket = bucket_size * this->fingerprint_size;
         auto bytes_per_bucket = (bits_per_bucket + 7) >> 3;
         if (bytes_per_bucket == 0) {
             bytes_per_bucket = 1;
         }
         for (std::size_t i = 0; i < this->number_of_buckets; i++) {
-            buckets[i].bit_array = new char[bytes_per_bucket];
+            buckets[i].bit_array = new char[bytes_per_bucket]; // Allocate memory for the bucket
             // 0 out the bucket
             memset(buckets[i].bit_array, 0, bytes_per_bucket);
         }
@@ -75,24 +75,20 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
 
     // now we take f - current_level bits from the fingerprint
     fingerprint >>= current_level;
-    uint32_t fing_copy = fingerprint;
-
-    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
 
     uint32_t index_to_use = index1;
 
     // check how many of given fingerprint we already have in the buckets
-
     std::size_t counter = 0;
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (full_slots[index1 * bucket_size + i] != false) {
-            auto result1 = buckets[index1].read(i, fingerprint_size_temp);
+            auto result1 = buckets[index1].read(i, fingerprint_size);
             if (result1 == fingerprint) {
                 counter++;
             }
         }
         if (full_slots[index2 * bucket_size + i] != false) {
-            auto result2 = buckets[index2].read(i, fingerprint_size_temp);
+            auto result2 = buckets[index2].read(i, fingerprint_size);
             if (result2 == fingerprint) {
                 counter++;
             }
@@ -105,7 +101,7 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
 
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (full_slots[index_to_use * bucket_size + i] == false) {
-            buckets[index_to_use].write(i, fingerprint, fingerprint_size_temp);
+            buckets[index_to_use].write(i, fingerprint, fingerprint_size);
             full_slots[index_to_use * bucket_size + i] = true;
             current_size++;
             return std::nullopt;
@@ -114,12 +110,13 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
     uint32_t index_of_victim = index_to_use;
     for (std::size_t i = 0; i < max_kicks; i++) {
         std::size_t bucket_index = rand() % bucket_size;
-        std::uint32_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size_temp);
+        std::uint32_t temp_fingerprint = buckets[index_to_use].read(bucket_index, fingerprint_size);
         if (i != 0) {
             fingerprint >>= current_level;
         }
 
-        buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size_temp);
+        buckets[index_to_use].write(bucket_index, fingerprint, fingerprint_size);
+
         fingerprint = temp_fingerprint;
 
         fingerprint <<= current_level;
@@ -132,7 +129,7 @@ std::optional<std::pair<uint32_t, uint32_t>> CuckooFilter::insert(const std::str
         for (std::size_t j = 0; j < bucket_size; j++) {
             if (full_slots[index_to_use * bucket_size + j] == false) {
                 fingerprint >>= current_level;
-                buckets[index_to_use].write(j, fingerprint, fingerprint_size_temp);
+                buckets[index_to_use].write(j, fingerprint, fingerprint_size);
                 full_slots[index_to_use * bucket_size + j] = true;
                 current_size++;
                 return std::nullopt;
@@ -157,11 +154,9 @@ void CuckooFilter::insert(std::optional<std::pair<uint32_t, uint32_t>> victim) {
 
     uint32_t index_to_use = index1;
 
-    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
-
     for (std::size_t i = 0; i < bucket_size; i++) {
         if (full_slots[index_to_use * bucket_size + i] == false) {
-            buckets[index_to_use].write(i, fingerprint, fingerprint_size_temp);
+            buckets[index_to_use].write(i, fingerprint, fingerprint_size);
             full_slots[index_to_use * bucket_size + i] = true;
             current_size++;
             return;
@@ -182,18 +177,16 @@ bool CuckooFilter::contains(const std::string& item) const {
     // now we take f - current_level bits from the fingerprint
     fingerprint >>= current_level;
 
-    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
-
     for (std::size_t i = 0; i < bucket_size; i++) {
         // check if those buckets are empty
         if (full_slots[index1 * bucket_size + i] != false) {
-            auto result1 = buckets[index1].read(i, fingerprint_size_temp);
+            auto result1 = buckets[index1].read(i, fingerprint_size);
             if (result1 == fingerprint) {
                 return true;
             }
         }
         if (full_slots[index2 * bucket_size + i] != false) {
-            auto result2 = buckets[index2].read(i, fingerprint_size_temp);
+            auto result2 = buckets[index2].read(i, fingerprint_size);
             if (result2 == fingerprint) {
                 return true;
             }
@@ -214,15 +207,13 @@ bool CuckooFilter::remove(const std::string& item) {
     // now we take f - current_level bits from the fingerprint
     fingerprint >>= current_level;
 
-    uint32_t fingerprint_size_temp = this->fingerprint_size - current_level;
-
     for (std::size_t i = 0; i < bucket_size; i++) {
-        if (buckets[index1].read(i, fingerprint_size_temp) == fingerprint && full_slots[index1 * bucket_size + i] == true) {
+        if (buckets[index1].read(i, fingerprint_size) == fingerprint && full_slots[index1 * bucket_size + i] == true) {
             full_slots[index1 * bucket_size + i] = false; // no need to delete the fingerprint
             current_size--;
             return true;
         }
-        if (buckets[index2].read(i, fingerprint_size_temp) == fingerprint && full_slots[index2 * bucket_size + i] == true) {
+        if (buckets[index2].read(i, fingerprint_size) == fingerprint && full_slots[index2 * bucket_size + i] == true) {
             full_slots[index2 * bucket_size + i] = false; // no need to delete the fingerprint
             current_size--;
             return true;

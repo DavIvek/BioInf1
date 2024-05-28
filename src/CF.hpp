@@ -13,100 +13,32 @@
 struct Bucket {
     char *bit_array;
 
-    // write fingerprint to the bucket
-    void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {   
-        char *bit_array_copy= bit_array;
-        if (fingerprint_size <= 4) {
-            // even or odd position
-            bit_array_copy += (position >> 1);
-            if (position & 1) {
-                *((uint8_t*)(bit_array_copy)) &= 0xF0;
-                *((uint8_t*)(bit_array_copy)) |= (fingerprint);
-            }
-            else {
-                *((uint8_t*)(bit_array_copy)) &= 0x0F;
-                *((uint8_t*)(bit_array_copy)) |= (fingerprint << 4);
-            }
-        }
-        else if (fingerprint_size <= 8) {
-            // one byte -> write to whole byte
-            bit_array_copy += position;
-            *(uint8_t*)(bit_array_copy) = fingerprint;
-        }
-        else if (fingerprint_size <= 12) {
-            bit_array_copy += (position + (position >> 1));
-            if (position & 1) {
-                *(uint16_t*)(bit_array_copy) &= 0x000F; // Clear the upper 12 bits
-                *(uint16_t*)(bit_array_copy) |= (fingerprint << 4); // Set the upper 12 bits
-            }
-            else {
-                *(uint16_t*)(bit_array_copy) &= 0xF000; // Clear the lower 12 bits
-                *(uint16_t*)(bit_array_copy) |= (fingerprint); // Set the lower 12 bits
-            }
-        }
-        else if (fingerprint_size <= 16) {
-            // two bytes -> write to whole bytes
-            bit_array_copy += (position << 1);
-            *(uint16_t*)(bit_array_copy) = fingerprint;
-        }
-        else if (fingerprint_size <= 24) {
-            bit_array_copy += (position + (position << 1));
-            *(uint32_t*)(bit_array_copy) &= 0xFF000000;  // Clear the upper 24 bits
-            *(uint32_t*)(bit_array_copy) |= fingerprint; // Set the upper 24 bits
-        }
-        else {
-            // four bytes -> write to whole bytes
-            bit_array_copy += (position << 2);
-            *(uint32_t*)(bit_array_copy) = fingerprint;
-        }
+    // Write fingerprint to the bucket
+    void write(std::size_t position, uint32_t fingerprint, std::size_t fingerprint_size) {
+        std::size_t bit_offset = position * fingerprint_size;
+        std::size_t byte_offset = bit_offset / 8;
+        bit_offset %= 8;
+
+        uint64_t mask = (1ULL << fingerprint_size) - 1;
+        fingerprint &= mask;
+
+        uint64_t *target = reinterpret_cast<uint64_t*>(bit_array + byte_offset);
+        *target &= ~(mask << bit_offset);
+        *target |= (static_cast<uint64_t>(fingerprint) << bit_offset);
     }
 
-    // read fingerprint from the bucket
+    // Read fingerprint from the bucket
     uint32_t read(std::size_t position, std::size_t fingerprint_size) const {
-        uint32_t fingerprint = 0;
-        const char *bit_array_copy = bit_array;
-        if (fingerprint_size <= 4) {
-            bit_array_copy += (position >> 1);
-            uint8_t bits_8 = *(uint8_t*)(bit_array_copy);
-            if (position & 1) {
-                // odd position -> read from the left
-                fingerprint = bits_8 & 0xF;
-            }
-            else {
-                // even position -> read from the right
-                fingerprint = (bits_8 >> 4) & 0xF;
-            }
-        }
-        else if (fingerprint_size <= 8) {
-            bit_array_copy += position;
-            fingerprint = *(uint8_t*)(bit_array_copy) & 0xFF;
-        }
-        else if (fingerprint_size <= 12) {
-            bit_array_copy += (position + (position >> 1));
-            if (position & 1) {
-                fingerprint = (*(uint16_t*)(bit_array_copy) >> 4 & 0xFFF); // Read the upper 12 bits
-            }
-            else {
-                fingerprint = (*(uint16_t*)(bit_array_copy) & 0xFFF); // Read the lower 12 bits
-            }
-        }
-        else if (fingerprint_size <= 16) {
-            bit_array_copy += (position << 1);
-            fingerprint = *(uint16_t*)(bit_array_copy) & 0xFFFF;
-        }
-        else if (fingerprint_size <= 24) {
-            bit_array_copy += (position + (position << 1));
-            uint32_t bits_32 = *(uint32_t*)(bit_array_copy);
-            fingerprint = bits_32 & 0xFFFFFF; 
-        }
-        else {
-            bit_array_copy += (position << 2);
-            fingerprint = *(uint32_t*)(bit_array_copy) & 0xFFFFFFFF;
-            return fingerprint;
-        }
-        uint32_t mask = (1 << fingerprint_size) - 1;
-        return fingerprint & mask;                          // right part of the bit expression is to clear the upper bits 
-                                                            // if the left shift operation resulted in 00010000, subtracting 1 gives 00001111
+        std::size_t bit_offset = position * fingerprint_size;
+        std::size_t byte_offset = bit_offset / 8;
+        bit_offset %= 8;
+
+        uint64_t mask = (1ULL << fingerprint_size) - 1;
+
+        const uint64_t *target = reinterpret_cast<const uint64_t*>(bit_array + byte_offset);
+        uint64_t fingerprint = (*target >> bit_offset) & mask;
+
+        return static_cast<uint32_t>(fingerprint);
     }
 };
 

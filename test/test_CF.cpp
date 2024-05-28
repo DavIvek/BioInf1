@@ -118,7 +118,7 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
     for (std::size_t i = 2; i < 33; i++) {
         // save the victims
         std::set<uint32_t> victims;
-        CuckooFilter cf(128, i, 4, 0);
+        CuckooFilter cf(100, i, 4, 0);
         EXPECT_EQ(cf.size(), 0);
 
         int j = 0;
@@ -131,7 +131,6 @@ TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
                 break;
             }
             else {
-                // Check if the item is in the filter
                 EXPECT_EQ(cf.contains(item), true);
             }
             j++;
