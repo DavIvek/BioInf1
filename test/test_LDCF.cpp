@@ -16,10 +16,19 @@ protected:
     void TearDown() override {
         // teardown code
     }
+
+    // Helper function to generate a fingerprint of a given string 
+    uint32_t generateFingerprint(const std::string& item, std::size_t fingerprint_size) {
+        std::hash<std::string> hash_fn;
+        std::size_t hash_value = hash_fn(item);
+        uint32_t fingerprint = hash_value & ((1 << fingerprint_size) - 1);
+
+        return fingerprint;
+    }
 };
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, BasicFunctionalityTest) {
-    LogarithmicDynamicCuckooFilter ldCF(100, 4, 1);
+    LogarithmicDynamicCuckooFilter ldCF(0.1, 4, 1);
     EXPECT_EQ(ldCF.size(), 0);
 
     ldCF.insert("test");
@@ -34,7 +43,7 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, BasicFunctionalityTest) {
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, MultipleInsertsTest) {
     // Create small logarithmic dynamic cuckoo filter
-    LogarithmicDynamicCuckooFilter ldCF(24, 4, 1);
+    LogarithmicDynamicCuckooFilter ldCF(0.1, 4, 1);
     EXPECT_EQ(ldCF.size(), 0);
 
     // Insert 4 items
@@ -59,7 +68,7 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, MultipleInsertsTest) {
 
 TEST_F(LogarithmicDynamicCuckooFilterTest, BigDurabilityTest) {
     // Test with a large number of inserts
-    LogarithmicDynamicCuckooFilter ldCF(10, 100, 6);
+    LogarithmicDynamicCuckooFilter ldCF(0.01, 10000, 4);
     EXPECT_EQ(ldCF.size(), 0);
 
     auto k = 10000;
@@ -71,8 +80,8 @@ TEST_F(LogarithmicDynamicCuckooFilterTest, BigDurabilityTest) {
 
     // Check if the items are in the filter
     for (std::size_t i = 2; i < k; ++i) {
-        std::string item = "test" + std::to_string(i); 
-        EXPECT_EQ(ldCF.contains(item), true);
+        std::string item = "test" + std::to_string(i);     
+        EXPECT_EQ(ldCF.contains(item),true);
     }
 }
 

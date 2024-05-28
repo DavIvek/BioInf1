@@ -1,28 +1,28 @@
-#include "CF.hpp"
-#include "LDCF.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <bitset>   
-#include <math.h>
+#include <cmath>
 #include <sys/types.h>
 
+#include "CF.hpp"
+#include "LDCF.hpp"
+
 // Constructor
-LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const double false_positive_rate, const std::size_t set_size, const std::size_t expected_levels):
+LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(double false_positive_rate, std::size_t set_size, std::size_t expected_levels):
     size_(0) {
-    // optimal bucket size -> 4
-    number_of_buckets = set_size / (4 * expected_levels);
-    auto load_factor = 0.935;
-    auto single_CF_capacity = load_factor * number_of_buckets * 4;
+    number_of_buckets = set_size / (BUCKET_SIZE * expected_levels);
+    auto single_CF_capacity = LOAD_FACTOR * number_of_buckets * BUCKET_SIZE;
+    double b_2 = 2 * 4;
 
     auto single_false_positive_rate = 1 - pow(1 - false_positive_rate, single_CF_capacity / set_size);
-    this->fingerprint_size = log2(8.0/single_false_positive_rate);
+    this->fingerprint_size = log2(b_2/single_false_positive_rate);
     this->fingerprint_size = ceil(this->fingerprint_size + expected_levels);
-    if (this->fingerprint_size > 32) {
-        this->fingerprint_size = 32;
+    if (this->fingerprint_size > BYTE_SIZE * 4) {
+        this->fingerprint_size = BYTE_SIZE * 4; // max fingerprint size
     }
 
-    root = new CuckooFilter(number_of_buckets, this->fingerprint_size, 4, 0);
+    root = new CuckooFilter(number_of_buckets, this->fingerprint_size, 0);
 }
 
 // Destructor
@@ -31,32 +31,32 @@ LogarithmicDynamicCuckooFilter::~LogarithmicDynamicCuckooFilter() {
 }
 
 // Insert an item into the filter
-void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
+void LogarithmicDynamicCuckooFilter::insert(const std::string &item) {
     int current_level = 0;
-    auto current_CF = root;
-    uint32_t fingerprint = hash(item);
+    auto *current_CF = root;
+    uint32_t fingerprint = CuckooFilter::hash(item);
     fingerprint = fingerprint & ((1 << current_CF->getFingerprintSize()) - 1);
 
     while (current_CF->isFull()) {
         if (getPrefix(fingerprint, current_level, current_CF->getFingerprintSize())) {
             if (current_CF->child0 == nullptr) {
-                current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level + 1);
+                current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, current_level + 1);
             }
             current_CF = current_CF->child0;
         } else {
             if (current_CF->child1 == nullptr) {
-                current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level + 1);
+                current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, current_level + 1);
             }
             current_CF = current_CF->child1;
         }
         current_level++;
     }
 
-    auto victim = current_CF->insert(item);
+    auto victim = current_CF->insert(item, fingerprint);
     if (victim.has_value()) {
-        current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level);
-        current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, 4, current_level);
-        if (getPrefix(victim->first, current_level, current_CF->getFingerprintSize())) {
+        current_CF->child0 = new CuckooFilter(number_of_buckets, fingerprint_size, current_level + 1);
+        current_CF->child1 = new CuckooFilter(number_of_buckets, fingerprint_size, current_level + 1);
+        if (getPrefix(victim->fingerprint, current_level, current_CF->getFingerprintSize())) {
             current_CF->child0->insert(victim.value());
         } else {
             current_CF->child1->insert(victim.value());
@@ -66,13 +66,13 @@ void LogarithmicDynamicCuckooFilter::insert(const std::string& item) {
 }
 
 // Check if an item is in the filter
-bool LogarithmicDynamicCuckooFilter::contains(const std::string& item) const {
+bool LogarithmicDynamicCuckooFilter::contains(const std::string &item) const {
     CuckooFilter *current_CF = root;
     int current_level = 0;
-    uint32_t fingerprint = hash(item);
+    uint32_t fingerprint = CuckooFilter::hash(item);
     fingerprint = fingerprint & ((1 << current_CF->getFingerprintSize()) - 1);
     while (true) {
-        if (current_CF->contains(item)) {
+        if (current_CF->contains(item, fingerprint)) {
             return true;
         }
         if (getPrefix(fingerprint, current_level, current_CF->getFingerprintSize())) {
@@ -91,16 +91,16 @@ bool LogarithmicDynamicCuckooFilter::contains(const std::string& item) const {
 }
 
 // Remove an item from the filter
-bool LogarithmicDynamicCuckooFilter::remove(const std::string& item) {
+bool LogarithmicDynamicCuckooFilter::remove(const std::string &item) {
     CuckooFilter *current_CF = root;
     int current_level = 0;
-    uint32_t fingerprint = hash(item);
+    uint32_t fingerprint = CuckooFilter::hash(item);
     fingerprint = fingerprint & ((1 << current_CF->getFingerprintSize()) - 1);
     while (true) {
-        if (current_CF->contains(item)) {
+        if (current_CF->contains(item, fingerprint)) {
             size_--;
             current_CF->acceptValues(true);
-            return current_CF->remove(item);
+            return current_CF->remove(item, fingerprint);
         }
         if (getPrefix(fingerprint, current_CF->current_level, current_CF->getFingerprintSize())) {
             if (current_CF->child0 == nullptr) {
@@ -117,12 +117,7 @@ bool LogarithmicDynamicCuckooFilter::remove(const std::string& item) {
     }
 }
 
-std::size_t LogarithmicDynamicCuckooFilter::hash(const std::string& item) const {
-    std::hash<std::string> hash_fn;
-    return hash_fn(item);
-}
-
-bool LogarithmicDynamicCuckooFilter::getPrefix(const std::size_t fingerprint, const int current_level, const std::size_t fingerprintSize) const {
+bool LogarithmicDynamicCuckooFilter::getPrefix(std::size_t fingerprint, int current_level, std::size_t fingerprintSize) {
     // put the one to the position of the current level
     uint32_t mask = 1 << current_level;
     return (fingerprint & mask) == 0;

@@ -6,6 +6,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_program(CLANG_TIDY "clang-tidy")
+if(CLANG_TIDY)
+    message(STATUS "clang-tidy found: ${CLANG_TIDY}")
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY}")
+else()
+    message(STATUS "clang-tidy not found")
+endif()
+
 # Enable testing
 enable_testing()
 

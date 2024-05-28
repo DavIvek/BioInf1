@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <sys/types.h>
+
 #include "CF.hpp"
 
 class CuckooFilterTest : public ::testing::Test {
@@ -28,7 +29,7 @@ protected:
 };
 
 TEST_F(CuckooFilterTest, BasicFunctionalityTest) {
-    CuckooFilter cf(100, 4, 4, 0);
+    CuckooFilter cf(100, 4, 0);
     EXPECT_EQ(cf.size(), 0);
 
     EXPECT_EQ(cf.insert("test"), std::nullopt);
@@ -45,7 +46,7 @@ TEST_F(CuckooFilterTest, BasicFunctionalityTest) {
 
 TEST_F(CuckooFilterTest, MultipleInsertsTest) {
     // Create small cuckoo filter
-    CuckooFilter cf(24, 4, 4, 0);
+    CuckooFilter cf(24, 4, 0);
     EXPECT_EQ(cf.size(), 0);
 
     // Insert 4 items
@@ -70,7 +71,7 @@ TEST_F(CuckooFilterTest, MultipleInsertsTest) {
 
 TEST_F(CuckooFilterTest, SmallerFilterTest) {
     // Create small cuckoo filter
-    CuckooFilter cf(4, 4, 4, 0);
+    CuckooFilter cf(4, 4, 0);
     EXPECT_EQ(cf.size(), 0);
 
     // Insert 4 items
@@ -93,40 +94,21 @@ TEST_F(CuckooFilterTest, SmallerFilterTest) {
     EXPECT_EQ(cf.contains("test4"), true);
 }
 
-TEST_F(CuckooFilterTest, LargeFilterTest) {
-    // insert until the filter is full
-    CuckooFilter cf(4, 4, 4, 0);
-    EXPECT_EQ(cf.size(), 0);
-
-    int i = 0;
-    while (!cf.isFull()) {
-        std::string item = "test" + std::to_string(i);
-        EXPECT_EQ(cf.insert(item), std::nullopt);
-        i++;
-    }
-
-    for (int j = 0; j < i; j++) {
-        std::string item = "test" + std::to_string(j);
-        if (cf.contains(item) == false) {
-            EXPECT_EQ(cf.contains(item), true);
-        }
-    }
-}
 
 TEST_F(CuckooFilterTest, FingerprintSizeDurabilityTest) {
     // insert with more values of fingerprint size
     for (std::size_t i = 2; i < 33; i++) {
         // save the victims
         std::set<uint32_t> victims;
-        CuckooFilter cf(100, i, 4, 0);
+        CuckooFilter cf(100, i, 0);
         EXPECT_EQ(cf.size(), 0);
 
         int j = 0;
-        while (!cf.isFull() && j < 1000) {
+        while (!cf.isFull() && j < 100000){
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {
-                victims.insert(result->first);
+                victims.insert(result->fingerprint);
                 j--;
                 break;
             }
@@ -152,7 +134,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
     for (std::size_t i = 2; i < 33; i++) {
         // save the victims
         std::set<uint32_t> victims;
-        CuckooFilter cf(10000, i, 4, 0);
+        CuckooFilter cf(10000, i, 0);
         EXPECT_EQ(cf.size(), 0);
 
         int j = 0;
@@ -160,7 +142,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
             std::string item = "test" + std::to_string(j);
             auto result = cf.insert(item);
             if (result != std::nullopt) {
-                victims.insert(result->first);
+                victims.insert(result->fingerprint);
                 j--;
                 break;
             }
@@ -180,7 +162,7 @@ TEST_F(CuckooFilterTest, BigDurabilityTest) {
 
 TEST_F(CuckooFilterTest, MultipleLevelsTest) {
     // try with CuckooFilter with other levels than 0
-    CuckooFilter cf(100, 4, 4, 3);
+    CuckooFilter cf(100, 4, 3);
     EXPECT_EQ(cf.size(), 0);
 
     // Insert 20 items

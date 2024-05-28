@@ -7,11 +7,16 @@
 #include "LDCF.hpp"
 #include "dynamicbloomfilter.h"
 
+const int LOWERCASE_A = 97;
+const int LOWERCASE_Z = 122;
+
+const int RATIO_OF_FALSE_STRINGS = 100;
+
 // Function to generate random strings
 std::vector<std::string> generate_random_strings(std::size_t n, std::size_t length) {
     std::vector<std::string> strings;
     std::mt19937_64 rng(std::random_device{}());
-    std::uniform_int_distribution<> dist(97, 122); // lowercase letters
+    std::uniform_int_distribution<> dist(LOWERCASE_A, LOWERCASE_Z);
 
     for (std::size_t i = 0; i < n; ++i) {
         std::string str(length, '\0');
@@ -24,10 +29,10 @@ std::vector<std::string> generate_random_strings(std::size_t n, std::size_t leng
 }
 
 int main() {
-    const std::size_t num_strings = 100000;
+    const std::size_t num_strings = 1000000;
     const std::size_t string_length = 10;
     const double false_positive_rate = 0.001;
-    const std::size_t set_size = 100000;
+    const std::size_t set_size = 1000000;
     const std::size_t expected_levels = 3;
 
     // Generate random strings
@@ -50,7 +55,7 @@ int main() {
     start = std::chrono::high_resolution_clock::now();
     for (const auto& str : strings) {
         // take pointer to char
-        auto c_str = str.c_str();
+        const auto *c_str = str.c_str();
         bloom_filter.insertItem(c_str);
     }
     end = std::chrono::high_resolution_clock::now();
@@ -66,7 +71,7 @@ int main() {
     std::cout << "number of elements in map " << string_map.size() << std::endl;
     std::size_t ldcf_false_positives = 0;
     std::size_t bloom_false_positives = 0;
-    auto false_strings = generate_random_strings(num_strings / 1000, string_length);
+    auto false_strings = generate_random_strings(num_strings / RATIO_OF_FALSE_STRINGS, string_length);
     std::cout << "number of false strings " << false_strings.size() << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
@@ -90,7 +95,7 @@ int main() {
     start = std::chrono::high_resolution_clock::now();
     for (const auto& str : false_strings) {
         // take pointer to char
-        auto c_str = str.c_str();
+        const auto *c_str = str.c_str();
         if (bloom_filter.queryItem(c_str) && string_map.find(str) == string_map.end()) {
             bloom_false_positives++;
         }
@@ -98,7 +103,7 @@ int main() {
     int elements_not_present_bloom = 0;
     for (const auto& str : strings) {
         // take pointer to char
-        auto c_str = str.c_str();
+        const auto *c_str = str.c_str();
         if (!bloom_filter.queryItem(c_str)) {
             elements_not_present_bloom++;
         }
