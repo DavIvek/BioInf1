@@ -62,3 +62,7 @@ target_link_libraries(DBF_vs_LDCF your_library)
 # Add benchmark executable for LDCF vs src_DBF without fp rate
 add_executable(DBF_vs_LDCF_no_fp benchmarks/DBF_vs_LDCF_no_fp.cpp)
 target_link_libraries(DBF_vs_LDCF_no_fp your_library)
+
+# Add benchmark executable for main
+add_executable(main benchmarks/main.cpp)
+target_link_libraries(main your_library)
