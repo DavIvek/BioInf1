@@ -47,16 +47,16 @@ std::vector<std::string> generate_random_strings(std::size_t num_strings, std::s
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 6) {
-        std::cerr << "Usage: " << argv[0] << " <reads_1.fq> <reads_2.fq> <string_length> <false_positive_rate> <expected_levels>" << std::endl;
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <string_length> <false_positive_rate> <expected_levels>" << std::endl;
         return 1;
     }
 
-    std::string file1 = argv[1];
-    std::string file2 = argv[2];
-    std::size_t string_length = std::stoul(argv[3]);
-    double false_positive_rate = std::stod(argv[4]);
-    std::size_t expected_levels = std::stoul(argv[5]);
+    std::string file1 = "../benchmarks/reads_1.fq";
+    std::string file2 = "../benchmarks/reads_2.fq";
+    std::size_t string_length = std::stoul(argv[1]);
+    double false_positive_rate = std::stod(argv[2]);
+    std::size_t expected_levels = std::stoul(argv[3]);
 
 
     // read data from files
