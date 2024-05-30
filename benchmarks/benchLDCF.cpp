@@ -23,6 +23,7 @@ std::vector<std::string> read_sequences_from_fq(const std::string& filename) {
         }
     }
     file.close();
+    // print number of sequences and first sequence
     return sequences;
 };
 
@@ -46,17 +47,17 @@ std::vector<std::string> generate_random_strings(std::size_t num_strings, std::s
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 7) {
-        std::cerr << "Usage: " << argv[0] << " <reads_1.fq> <reads_2.fq> <num_strings> <string_length> <false_positive_rate> <expected_levels>" << std::endl;
+    if (argc != 6) {
+        std::cerr << "Usage: " << argv[0] << " <reads_1.fq> <reads_2.fq> <string_length> <false_positive_rate> <expected_levels>" << std::endl;
         return 1;
     }
 
     std::string file1 = argv[1];
     std::string file2 = argv[2];
-    std::size_t num_strings = std::stoul(argv[3]);
-    std::size_t string_length = std::stoul(argv[4]);
-    double false_positive_rate = std::stod(argv[5]);
-    std::size_t expected_levels = std::stoul(argv[6]);
+    std::size_t string_length = std::stoul(argv[3]);
+    double false_positive_rate = std::stod(argv[4]);
+    std::size_t expected_levels = std::stoul(argv[5]);
+
 
     // read data from files
     auto sequences1 = read_sequences_from_fq(file1);
@@ -66,17 +67,25 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> all_sequences = sequences1;
     all_sequences.insert(all_sequences.end(), sequences2.begin(), sequences2.end());
 
-    // trim 
-    if (all_sequences.size() > num_strings) {
-        all_sequences.resize(num_strings);
+    // put all sequences in one string
+    std::string all_sequences_str;
+    for (const auto& seq : all_sequences) {
+        all_sequences_str += seq;
+    }
+
+    // now create a vector of all substrings of length `string_length`
+    std::vector<std::string> all_substrings;
+    all_substrings.reserve(all_sequences_str.size() / string_length);
+    for (std::size_t i = 0; i < all_sequences_str.size(); i += string_length) {
+        all_substrings.push_back(all_sequences_str.substr(i, string_length));
     }
 
     // init LogarithmicDynamicCuckooFilter
-    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, num_strings, expected_levels);
+    LogarithmicDynamicCuckooFilter ldcf(false_positive_rate, all_sequences.size(), expected_levels);
 
     // time clock
     auto start = std::chrono::high_resolution_clock::now();
-    for (const auto& seq : all_sequences) {
+    for (const auto& seq : all_substrings) {
         ldcf.insert(seq);
     }
     auto end = std::chrono::high_resolution_clock::now();
@@ -84,15 +93,15 @@ int main(int argc, char* argv[]) {
 
     // test false positives
     std::unordered_map<std::string, bool> string_map;
-    string_map.reserve(all_sequences.size());
-    for (const auto& seq : all_sequences) {
+    string_map.reserve(all_substrings.size());
+    for (const auto& seq : all_substrings) {
         string_map.emplace(seq, true);
     }
 
     std::size_t ldcf_false_positives = 0;
 
     // random strings for false positives
-    auto false_strings = generate_random_strings(num_strings / 10, string_length);
+    auto false_strings = generate_random_strings(all_substrings.size() / 10, string_length);
 
     start = std::chrono::high_resolution_clock::now();
     for (const auto& seq : false_strings) {
@@ -100,14 +109,23 @@ int main(int argc, char* argv[]) {
             ldcf_false_positives++;
         }
     }
+
     end = std::chrono::high_resolution_clock::now();
     auto ldcf_check_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    double ldcf_fp_rate = static_cast<double>(ldcf_false_positives) / (num_strings / 10);
-
-    std::cout << "LDCF Insert Time: " << ldcf_insert_time << " ms\n";
-    std::cout << "LDCF Check Time: " << ldcf_check_time << " ms\n";
-    std::cout << "LDCF False Positive Rate: " << ldcf_fp_rate << "\n";
+    double ldcf_fp_rate = (double)ldcf_false_positives / false_strings.size();
+    
+    // check if results.txt exists
+    std::ofstream results("results.txt", std::ios::app);
+    if (!results.is_open()) {
+        // if not, create it
+        results.open("results.txt");
+    }
+    // write results to file
+    results << "LDCF Insert Time per entry: " << (double)ldcf_insert_time / all_substrings.size() << " ms\n";
+    results << "LDCF Check Time per entry: " << (double)ldcf_check_time / false_strings.size() << " ms\n";
+    results << "LDCF False Positive Rate: " << ldcf_fp_rate << "\n";
+    results << "Number of inserted strings: " << all_substrings.size() << "\n";
 
     return 0;
 }

@@ -20,23 +20,14 @@ enable_testing()
 # Add Google Test
 add_subdirectory(third_party/googletest)
 
-
-
 # Add source files
 add_library(your_library
     src/CF.cpp
     src/LDCF.cpp
-    src_DBF/hashfunctions.cpp
-    src_DBF/dynamicbloomfilter.cpp
-    src_DBF/hashfunctions.cpp
-    src_DBF/countingbloomfilter.cpp
 )
 
 # Include directories
 target_include_directories(your_library PUBLIC src)
-target_include_directories(your_library PUBLIC src_DBF)
-
-
 
 # Add test executable
 add_executable(test_CF test/test_CF.cpp)
@@ -55,14 +46,6 @@ add_test(NAME TestCF COMMAND test_CF)
 add_test(NAME TestLDCF COMMAND test_LDCF)
 add_test(NAME TestBucket COMMAND test_bucket)
 
-# Add benchmark executable for LDCF vs src_DBF
-add_executable(DBF_vs_LDCF benchmarks/DBF_vs_LDCF.cpp)
-target_link_libraries(DBF_vs_LDCF your_library)
-
-# Add benchmark executable for LDCF vs src_DBF without fp rate
-add_executable(DBF_vs_LDCF_no_fp benchmarks/DBF_vs_LDCF_no_fp.cpp)
-target_link_libraries(DBF_vs_LDCF_no_fp your_library)
-
-# Add benchmark executable for main
-add_executable(main benchmarks/main.cpp)
-target_link_libraries(main your_library)
+# Add benchmark executable for benchLDCF
+add_executable(benchLDCF benchmarks/benchLDCF.cpp)
+target_link_libraries(benchLDCF your_library)
