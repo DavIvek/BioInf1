@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -101,19 +102,22 @@ int main(int argc, char* argv[]) {
     std::size_t ldcf_false_positives = 0;
 
     // random strings for false positives
-    auto false_strings = generate_random_strings(all_substrings.size() / 10, string_length);
-
+    auto false_strings = generate_random_strings(all_substrings.size(), string_length);
+    std::size_t false_positive_oppotunities = 0;
     start = std::chrono::high_resolution_clock::now();
     for (const auto& seq : false_strings) {
         if (ldcf.contains(seq) && string_map.find(seq) == string_map.end()) {
             ldcf_false_positives++;
+        }
+        if (string_map.find(seq) == string_map.end()) {
+            false_positive_oppotunities++;
         }
     }
 
     end = std::chrono::high_resolution_clock::now();
     auto ldcf_check_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    double ldcf_fp_rate = (double)ldcf_false_positives / false_strings.size();
+    double ldcf_fp_rate = (double)ldcf_false_positives / false_positive_oppotunities;
     
     // check if results.txt exists
     std::ofstream results("results.txt", std::ios::app);
