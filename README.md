@@ -82,3 +82,13 @@ To run the example benchmarks, follow these steps:
 The `benchLDCF` program reads from files that contain ecoli genomes and performs various operations on the Logarithmic Dynamic Cuckoo Filter. It calculates insertion time, membership test time, and false positive rate. It uses a substring length to determine which sublength of substrings to look for. It also creates false positive examples to test the effectiveness of the filter. The results are written to the `result.txt` file.
 
 Make sure you have the necessary input files in the appropriate location before running the benchmarks (in default implementation they are in benchmarks folder).
+
+### Publications
+If you want to know more detailed information, please refer to the following papers:
+
+Fan Zhang, Hanhua Chen, Hai Jin, Pedro Reviriego. "The Logarithmic Dynamic Cuckoo Filter." in Proceedings of 37th IEEE International Conference on Data Engineering (ICDE 2021), Chania, Crete, Greece, April 19-22, 2021.
+
+Hanhua Chen, Liangyi Liao, Hai Jin, Jie Wu. "The Dynamic Cuckoo Filter." in Proceedings of the 25th IEEE International Conference on Network Protocols (ICNP 2017), Toronto, Canada, Oct. 10-13, 2017. (https://github.com/CGCL-codes/DCF)
+
+Feiyue Wang, Hanhua Chen, Liangyi Liao, Fan Zhang, Hai Jin. "The Power of Better Choice: Reducing Relocations in Cuckoo Filter." in Proceedings of 39th IEEE International Conference on Distributed Computing Systems (ICDCS 2019), Dallas, Texas, USA, July 7-10, 2019. (https://github.com/CGCL-codes/BCF)
+
